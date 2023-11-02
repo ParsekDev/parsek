@@ -1,0 +1,13 @@
+.gradle
+.vertx
+build
+.directory
+
+config.json
+config.conf
+
+/*.jar
+
+.docker
+
+file-uploads
