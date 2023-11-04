@@ -49,6 +49,8 @@ dependencies {
     implementation(group = "commons-codec", name = "commons-codec", version = "1.16.0")
 
     implementation("org.springframework:spring-context:5.3.30")
+
+    implementation(project("api"))
 }
 
 tasks {
