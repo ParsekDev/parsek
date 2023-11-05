@@ -43,7 +43,7 @@ dependencies {
 
     implementation(group = "org.apache.logging.log4j", name = "log4j-api", version = log4jVersion)
     implementation(group = "org.apache.logging.log4j", name = "log4j-core", version = log4jVersion)
-    implementation(group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version = log4jVersion)
+    implementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
 
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
     implementation(group = "commons-codec", name = "commons-codec", version = "1.16.0")
