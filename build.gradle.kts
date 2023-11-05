@@ -1,5 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 val vertxVersion = "4.4.6"
 val log4jVersion = "2.21.1"
+val appMainClass = "co.statu.parsek.Main"
+val pf4jVersion: String by project
+val pluginsDir: File by rootProject.extra
 
 plugins {
     java
@@ -24,6 +29,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+
+    implementation(project("api"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
@@ -51,7 +58,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.springframework/spring-context
     implementation("org.springframework:spring-context:5.3.30")
 
-    implementation(project("api"))
+    implementation("org.pf4j:pf4j:${pf4jVersion}")
+    implementation("org.apache.commons:commons-lang3:3.13.0")
 }
 
 tasks {
@@ -103,8 +111,16 @@ tasks.named<JavaExec>("run") {
     environment("EnvironmentType", "DEVELOPMENT")
     environment("ParsekVersion", fullVersion)
     environment("ParsekBuildType", buildType)
+    systemProperty("pf4j.pluginsDir", pluginsDir.absolutePath)
 }
 
 application {
-    mainClass.set("co.statu.parsek.Main")
+    mainClass.set(appMainClass)
+}
+
+tasks {
+    named<ShadowJar>("shadowJar") {
+        archiveClassifier.set("uber")
+        archiveBaseName.set("${project.name}-plugin-demo")
+    }
 }
