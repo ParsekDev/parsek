@@ -3,8 +3,8 @@ val log4jVersion = "2.21.1"
 
 plugins {
     java
-    kotlin("jvm") version "1.9.10"
-    kotlin("kapt") version "1.9.10"
+    kotlin("jvm") version "1.9.20"
+    kotlin("kapt") version "1.9.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     application
 }
@@ -48,6 +48,7 @@ dependencies {
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
     implementation(group = "commons-codec", name = "commons-codec", version = "1.16.0")
 
+    // https://mvnrepository.com/artifact/org.springframework/spring-context
     implementation("org.springframework:spring-context:5.3.30")
 
     implementation(project("api"))
