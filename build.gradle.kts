@@ -1,5 +1,5 @@
-val vertxVersion = "4.4.4"
-val log4jVersion = "2.20.0"
+val vertxVersion = "4.4.6"
+val log4jVersion = "2.21.1"
 
 plugins {
     java
