@@ -2,7 +2,7 @@ val pf4jVersion: String by project
 
 plugins {
     id("java")
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.20"
 }
 
 group = "co.statu.parsek.api"
