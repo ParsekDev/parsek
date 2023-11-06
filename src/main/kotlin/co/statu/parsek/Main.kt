@@ -1,20 +1,15 @@
 package co.statu.parsek
 
 import co.statu.parsek.annotation.Boot
-import co.statu.parsek.api.Greeting
+import co.statu.parsek.api.event.ParsekEventListener
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.util.TimeUtil
 import io.vertx.core.Vertx
 import io.vertx.core.VertxOptions
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.CoroutineVerticle
-import org.pf4j.CompoundPluginDescriptorFinder
-import org.pf4j.DefaultPluginManager
-import org.pf4j.ManifestPluginDescriptorFinder
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.jar.Manifest
 
 @Boot
@@ -92,16 +87,7 @@ class Main : CoroutineVerticle() {
     private lateinit var router: Router
     private lateinit var applicationContext: AnnotationConfigApplicationContext
     private lateinit var configManager: ConfigManager
-
-    private class PluginManager(importPaths: List<Path>) : DefaultPluginManager(importPaths) {
-        override fun createPluginDescriptorFinder(): CompoundPluginDescriptorFinder {
-            return CompoundPluginDescriptorFinder() // Demo is using the Manifest file
-                // PropertiesPluginDescriptorFinder is commented out just to avoid error log
-                //.add(PropertiesPluginDescriptorFinder())
-                .add(ManifestPluginDescriptorFinder())
-        }
-    }
-
+    private lateinit var pluginManager: PluginManager
 
     override suspend fun start() {
         println(
@@ -115,30 +101,6 @@ class Main : CoroutineVerticle() {
 
         logger.info("Hello World!")
 
-        val pluginsDir = System.getProperty("pf4j.pluginsDir", "./plugins")
-        val pluginManager = PluginManager(listOf(Paths.get(pluginsDir)))
-
-        pluginManager.loadPlugins()
-
-        pluginManager.startPlugins()
-
-        val greetings: List<Greeting> = pluginManager.getExtensions(Greeting::class.java)
-        logger.info(
-            String.format(
-                "Found %d extensions for extension point '%s'",
-                greetings.size,
-                Greeting::class.java.name
-            )
-        )
-        val greetedPersons = listOf("Alice", "Bob", "Trudy")
-
-        greetings.forEach { greeting ->
-            logger.info(">>> ${greeting.greeting}")
-            greetedPersons.forEach { person ->
-                logger.info("\t>>> ${greeting.greetPerson(person)}")
-            }
-        }
-
         init()
 
         startWebServer()
@@ -147,9 +109,23 @@ class Main : CoroutineVerticle() {
     private suspend fun init() {
         initDependencyInjection()
 
+        initPlugins()
+
         initConfigManager()
 
         initRoutes()
+    }
+
+    private fun initPlugins() {
+        pluginManager = applicationContext.getBean(PluginManager::class.java)
+
+        logger.info("Loading plugins")
+
+        pluginManager.loadPlugins()
+
+        logger.info("Enabling plugins")
+
+        pluginManager.startPlugins()
     }
 
     private fun initDependencyInjection() {
@@ -170,6 +146,19 @@ class Main : CoroutineVerticle() {
             configManager.init()
         } catch (e: Exception) {
             println(e)
+        }
+
+        val greetings: List<ParsekEventListener> = pluginManager.getExtensions(ParsekEventListener::class.java)
+//        logger.info(
+//            String.format(
+//                "Found %d extensions for extension point '%s'",
+//                greetings.size,
+//                Greeting::class.java.name
+//            )
+//        )
+
+        greetings.forEach { greeting ->
+            greeting.onInitConfigManager(configManager)
         }
     }
 

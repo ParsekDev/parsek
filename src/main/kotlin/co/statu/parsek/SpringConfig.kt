@@ -11,6 +11,7 @@ import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.*
+import java.nio.file.Paths
 
 
 @Configuration
@@ -19,6 +20,10 @@ open class SpringConfig {
     companion object {
         private lateinit var vertx: Vertx
         private lateinit var logger: Logger
+
+        private val pluginsDir by lazy {
+            System.getProperty("pf4j.pluginsDir", "./plugins")
+        }
 
         internal fun setDefaults(vertx: Vertx, logger: Logger) {
             SpringConfig.vertx = vertx
@@ -59,4 +64,9 @@ open class SpringConfig {
     open fun provideSchemeParser(vertx: Vertx): SchemaParser = SchemaParser.createOpenAPI3SchemaParser(
         SchemaRouter.create(vertx, SchemaRouterOptions())
     )
+
+    @Bean
+    @Lazy
+    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+    open fun pluginManager(): PluginManager = PluginManager(listOf(Paths.get(pluginsDir)))
 }
