@@ -13,7 +13,9 @@ internal class PluginFactory : DefaultPluginFactory() {
     }
 
     override fun createInstance(pluginClass: Class<*>, pluginWrapper: PluginWrapper): Plugin? {
-        val context = PluginContext()
+        val context = PluginContext(
+            pluginId = pluginWrapper.pluginId
+        )
 
         try {
             val constructor = pluginClass.getConstructor(PluginContext::class.java)

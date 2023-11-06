@@ -144,21 +144,14 @@ class Main : CoroutineVerticle() {
 
         try {
             configManager.init()
+
+            val parsekEventHandlers = pluginManager.getExtensions(ParsekEventListener::class.java)
+
+            parsekEventHandlers.forEach { eventHandler ->
+                eventHandler.onConfigManagerReady(configManager)
+            }
         } catch (e: Exception) {
             println(e)
-        }
-
-        val greetings: List<ParsekEventListener> = pluginManager.getExtensions(ParsekEventListener::class.java)
-//        logger.info(
-//            String.format(
-//                "Found %d extensions for extension point '%s'",
-//                greetings.size,
-//                Greeting::class.java.name
-//            )
-//        )
-
-        greetings.forEach { greeting ->
-            greeting.onInitConfigManager(configManager)
         }
     }
 

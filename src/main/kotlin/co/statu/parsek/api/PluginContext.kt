@@ -1,3 +1,3 @@
 package co.statu.parsek.api
 
-class PluginContext
+class PluginContext(val pluginId: String)

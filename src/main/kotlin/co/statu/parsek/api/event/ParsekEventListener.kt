@@ -9,5 +9,5 @@ import org.pf4j.ExtensionPoint
  */
 interface ParsekEventListener : ExtensionPoint {
 
-    fun onInitConfigManager(configManager: ConfigManager)
+    fun onConfigManagerReady(configManager: ConfigManager)
 }

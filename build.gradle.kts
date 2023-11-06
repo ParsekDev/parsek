@@ -1,6 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-val vertxVersion = "4.4.6"
+val vertxVersion: String by project
 val log4jVersion = "2.21.1"
 val appMainClass = "co.statu.parsek.Main"
 val pf4jVersion: String by project
@@ -29,6 +29,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
@@ -58,6 +59,10 @@ dependencies {
 
     implementation("org.pf4j:pf4j:${pf4jVersion}")
     implementation("org.apache.commons:commons-lang3:3.13.0")
+
+    // https://mvnrepository.com/artifact/com.google.code.gson/gson
+    implementation("com.google.code.gson:gson:2.10.1")
+
 }
 
 tasks {
