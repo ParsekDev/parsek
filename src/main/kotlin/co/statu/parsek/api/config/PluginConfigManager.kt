@@ -31,6 +31,7 @@ class PluginConfigManager<T : PluginConfig>(
     init {
         logger.info("Checking available config migrations")
 
+        initialize()
         migrate()
     }
 
@@ -42,6 +43,17 @@ class PluginConfigManager<T : PluginConfig>(
         this.configAsJsonObject = configAsJsonObject
 
         config = gson.fromJson(configAsJsonObject.toString(), pluginConfigClass)
+    }
+
+    private fun initialize() {
+        if (configManager.getConfig()
+                .getJsonObject("plugins")
+                .getJsonObject(pluginId) == null
+        ) {
+            logger.warn("Couldn't find config for \"${pluginId}\". Saving default config")
+
+            saveConfig()
+        }
     }
 
     private fun migrate(configVersion: Int = config.version, saveConfig: Boolean = true) {
