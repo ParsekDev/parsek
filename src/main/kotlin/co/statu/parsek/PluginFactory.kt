@@ -1,5 +1,6 @@
 package co.statu.parsek
 
+import co.statu.parsek.SpringConfig.Companion.vertx
 import co.statu.parsek.api.ParsekPlugin
 import co.statu.parsek.api.PluginContext
 import org.pf4j.DefaultPluginFactory
@@ -14,7 +15,8 @@ internal class PluginFactory : DefaultPluginFactory() {
 
     override fun createInstance(pluginClass: Class<*>, pluginWrapper: PluginWrapper): Plugin? {
         val context = PluginContext(
-            pluginId = pluginWrapper.pluginId
+            pluginId = pluginWrapper.pluginId,
+            vertx
         )
 
         try {

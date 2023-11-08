@@ -1,3 +1,5 @@
 package co.statu.parsek.api
 
-class PluginContext(val pluginId: String)
+import io.vertx.core.Vertx
+
+class PluginContext(val pluginId: String, val vertx: Vertx)

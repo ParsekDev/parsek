@@ -18,18 +18,16 @@ import java.nio.file.Paths
 @ComponentScan("co.statu.parsek")
 open class SpringConfig {
     companion object {
-        private lateinit var vertx: Vertx
+        internal lateinit var vertx: Vertx
         private lateinit var logger: Logger
-
-        private val pluginsDir by lazy {
-            System.getProperty("pf4j.pluginsDir", "./plugins")
-        }
 
         internal fun setDefaults(vertx: Vertx, logger: Logger) {
             SpringConfig.vertx = vertx
             SpringConfig.logger = logger
         }
     }
+
+    private val pluginsDir = System.getProperty("pf4j.pluginsDir", "./plugins")
 
     @Autowired
     private lateinit var applicationContext: AnnotationConfigApplicationContext
