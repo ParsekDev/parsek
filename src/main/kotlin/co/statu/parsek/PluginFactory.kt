@@ -1,5 +1,6 @@
 package co.statu.parsek
 
+import co.statu.parsek.PluginManager.Companion.pluginEventManager
 import co.statu.parsek.SpringConfig.Companion.vertx
 import co.statu.parsek.api.ParsekPlugin
 import co.statu.parsek.api.PluginContext
@@ -8,7 +9,7 @@ import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
 
-internal class PluginFactory : DefaultPluginFactory() {
+class PluginFactory : DefaultPluginFactory() {
     companion object {
         private val logger = LoggerFactory.getLogger(PluginFactory::class.java)
     }
@@ -16,7 +17,8 @@ internal class PluginFactory : DefaultPluginFactory() {
     override fun createInstance(pluginClass: Class<*>, pluginWrapper: PluginWrapper): Plugin? {
         val context = PluginContext(
             pluginId = pluginWrapper.pluginId,
-            vertx
+            vertx = vertx,
+            pluginEventManager
         )
 
         try {

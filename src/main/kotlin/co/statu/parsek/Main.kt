@@ -117,6 +117,8 @@ class Main : CoroutineVerticle() {
     }
 
     private fun initPlugins() {
+        logger.info("Initializing plugin manager")
+
         pluginManager = applicationContext.getBean(PluginManager::class.java)
 
         logger.info("Loading plugins")
@@ -139,13 +141,12 @@ class Main : CoroutineVerticle() {
     private suspend fun initConfigManager() {
         logger.info("Initializing config manager")
 
-
         configManager = applicationContext.getBean(ConfigManager::class.java)
 
         try {
             configManager.init()
 
-            val parsekEventHandlers = pluginManager.getExtensions(ParsekEventListener::class.java)
+            val parsekEventHandlers = PluginEventManager.getEventHandlers<ParsekEventListener>()
 
             parsekEventHandlers.forEach { eventHandler ->
                 eventHandler.onConfigManagerReady(configManager)
