@@ -1,6 +1,7 @@
 package co.statu.parsek.model
 
-import co.statu.parsek.ErrorCode
+import co.statu.parsek.error.BadRequest
+import co.statu.parsek.error.InternalServerError
 import io.vertx.core.Handler
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.validation.*
@@ -40,20 +41,20 @@ abstract class Api : Route() {
                 failure is BodyProcessorException ||
                 failure is RequestPredicateException
             ) {
-                sendResult(Error(ErrorCode.BAD_REQUEST), context, mapOf("bodyValidationError" to failure.message))
+                sendResult(BadRequest(), context, mapOf("bodyValidationError" to failure.message))
 
                 return@launch
             }
 
             if (failure is IOException) {
-                sendResult(Error(ErrorCode.BAD_REQUEST), context, mapOf("inputError" to failure.message))
+                sendResult(BadRequest(), context, mapOf("inputError" to failure.message))
 
                 return@launch
             }
 
             if (failure !is Result) {
                 logger.error("Error on endpoint URL: {} {}", context.request().method(), context.request().path())
-                sendResult(Error(ErrorCode.INTERNAL_SERVER_ERROR), context)
+                sendResult(InternalServerError(), context)
 
                 throw failure
             }

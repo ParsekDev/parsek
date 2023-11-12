@@ -143,16 +143,12 @@ class Main : CoroutineVerticle() {
 
         configManager = applicationContext.getBean(ConfigManager::class.java)
 
-        try {
-            configManager.init()
+        configManager.init()
 
-            val parsekEventHandlers = PluginEventManager.getEventHandlers<ParsekEventListener>()
+        val parsekEventHandlers = PluginEventManager.getEventHandlers<ParsekEventListener>()
 
-            parsekEventHandlers.forEach { eventHandler ->
-                eventHandler.onConfigManagerReady(configManager)
-            }
-        } catch (e: Exception) {
-            println(e)
+        parsekEventHandlers.forEach { eventHandler ->
+            eventHandler.onConfigManagerReady(configManager)
         }
     }
 
