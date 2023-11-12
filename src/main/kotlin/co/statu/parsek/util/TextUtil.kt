@@ -13,6 +13,6 @@ object TextUtil {
         val result = regex.replace(this) { matchResult ->
             "${matchResult.groupValues[1]}_${matchResult.groupValues[2].lowercase()}"
         }
-        return result.lowercase()
+        return result
     }
 }
