@@ -11,6 +11,7 @@ import io.vertx.kotlin.coroutines.CoroutineVerticle
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import java.util.jar.Manifest
+import kotlin.system.exitProcess
 
 @Boot
 class Main : CoroutineVerticle() {
@@ -145,10 +146,16 @@ class Main : CoroutineVerticle() {
 
         configManager.init()
 
-        val parsekEventHandlers = PluginEventManager.getEventHandlers<ParsekEventListener>()
+        try {
+            val parsekEventHandlers = PluginEventManager.getEventHandlers<ParsekEventListener>()
 
-        parsekEventHandlers.forEach { eventHandler ->
-            eventHandler.onConfigManagerReady(configManager)
+            parsekEventHandlers.forEach { eventHandler ->
+                eventHandler.onConfigManagerReady(configManager)
+            }
+        } catch (e: Exception) {
+            println(e.stackTraceToString())
+
+            exitProcess(1)
         }
     }
 
@@ -157,7 +164,7 @@ class Main : CoroutineVerticle() {
 
         try {
             router = applicationContext.getBean(Router::class.java)
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             logger.error(e.toString())
         }
     }
