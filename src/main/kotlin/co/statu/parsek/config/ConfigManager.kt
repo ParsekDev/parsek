@@ -27,7 +27,7 @@ class ConfigManager(
 ) {
 
     companion object {
-        private const val CONFIG_VERSION = 2
+        private const val CONFIG_VERSION = 1
 
         private val DEFAULT_CONFIG by lazy {
             JsonObject(
