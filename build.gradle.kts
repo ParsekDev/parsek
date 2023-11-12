@@ -37,15 +37,11 @@ dependencies {
 
     implementation("io.vertx:vertx-web:$vertxVersion")
     implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
-    implementation("io.vertx:vertx-web-templ-handlebars:$vertxVersion")
     implementation("io.vertx:vertx-config:$vertxVersion")
     implementation("io.vertx:vertx-config-hocon:$vertxVersion")
     implementation("io.vertx:vertx-lang-kotlin-coroutines:$vertxVersion")
     implementation("io.vertx:vertx-web-validation:$vertxVersion")
     implementation("io.vertx:vertx-json-schema:$vertxVersion")
-
-    // https://mvnrepository.com/artifact/com.auth0/java-jwt
-    implementation("com.auth0:java-jwt:4.4.0")
 
     implementation(group = "org.apache.logging.log4j", name = "log4j-api", version = log4jVersion)
     implementation(group = "org.apache.logging.log4j", name = "log4j-core", version = log4jVersion)

@@ -3,7 +3,6 @@ package co.statu.parsek
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.route.RouterProvider
 import io.vertx.core.Vertx
-import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine
 import io.vertx.json.schema.SchemaParser
 import io.vertx.json.schema.SchemaRouter
 import io.vertx.json.schema.SchemaRouterOptions
@@ -50,11 +49,6 @@ open class SpringConfig {
     ) =
         RouterProvider.create(vertx, applicationContext, schemaParser, configManager)
             .provide()
-
-    @Bean
-    @Lazy
-    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
-    open fun templateEngine(): HandlebarsTemplateEngine = HandlebarsTemplateEngine.create(vertx)
 
     @Bean
     @Lazy
