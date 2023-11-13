@@ -1,6 +1,8 @@
 package co.statu.parsek.route
 
+import co.statu.parsek.PluginEventManager
 import co.statu.parsek.annotation.Endpoint
+import co.statu.parsek.api.event.RouterEventListener
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.model.Route
 import co.statu.parsek.model.RouteType
@@ -60,7 +62,13 @@ class RouterProvider private constructor(
     init {
         val beans = applicationContext.getBeansWithAnnotation(Endpoint::class.java)
 
-        val routeList = beans.map { it.value as Route }
+        val routeList = beans.map { it.value as Route }.toMutableList()
+
+        val routerEventHandlers = PluginEventManager.getEventHandlers<RouterEventListener>()
+
+        routerEventHandlers.forEach { eventHandler ->
+            eventHandler.onInitRouteList(routeList)
+        }
 
         router.route()
             .handler(SessionHandler.create(LocalSessionStore.create(vertx)))

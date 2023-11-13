@@ -12,12 +12,13 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.slf4j.Logger
-import org.springframework.beans.factory.annotation.Autowired
+import org.slf4j.LoggerFactory
 import java.io.IOException
 
 abstract class Api : Route() {
-    @Autowired
-    private lateinit var logger: Logger
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(Api::class.java)
+    }
 
     override fun getHandler() = Handler<RoutingContext> { context ->
         CoroutineScope(context.vertx().dispatcher()).launch(getExceptionHandler(context)) {
