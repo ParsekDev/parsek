@@ -64,14 +64,16 @@ dependencies {
 
 tasks {
     register("copyJar") {
+        dependsOn(shadowJar)
+
         doLast {
-            copy {
-                from(shadowJar.get().archiveFile.get().asFile.absolutePath)
-                into(buildDir)
+            if (shadowJar.get().archiveFile.get().asFile.parentFile.absolutePath != buildDir.absolutePath) {
+                copy {
+                    from(shadowJar.get().archiveFile.get().asFile.absolutePath)
+                    into(buildDir)
+                }
             }
         }
-
-        dependsOn(shadowJar)
     }
 
     build {
