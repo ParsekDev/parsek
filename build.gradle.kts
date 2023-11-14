@@ -105,10 +105,6 @@ tasks {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
 tasks.named<JavaExec>("run") {
     environment("EnvironmentType", "DEVELOPMENT")
     environment("ParsekVersion", fullVersion)
