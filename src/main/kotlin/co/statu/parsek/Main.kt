@@ -175,7 +175,7 @@ class Main : CoroutineVerticle() {
         vertx
             .createHttpServer()
             .requestHandler(router)
-            .listen(PORT) { result ->
+            .listen(PORT, "0.0.0.0") { result ->
                 if (result.succeeded()) {
                     logger.info("Started listening on port $PORT, ready to rock & roll! (${TimeUtil.getStartupTime()}s)")
                 } else {
