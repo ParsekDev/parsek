@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 val vertxVersion: String by project
 val log4jVersion = "2.21.1"
 val appMainClass = "co.statu.parsek.Main"
@@ -20,6 +18,7 @@ version = "1.0.0"
 val buildType = "alpha"
 val timeStamp: String by project
 val fullVersion = if (project.hasProperty("timeStamp")) "$version-$buildType-$timeStamp" else "$version-$buildType"
+val buildDir by extra { file("${rootProject.layout.buildDirectory.get()}/libs") }
 
 repositories {
     mavenCentral()
@@ -68,7 +67,7 @@ tasks {
         doLast {
             copy {
                 from(shadowJar.get().archiveFile.get().asFile.absolutePath)
-                into("./")
+                into(buildDir)
             }
         }
 
@@ -97,9 +96,9 @@ tasks {
         }
 
         if (project.hasProperty("timeStamp")) {
-            archiveFileName.set("Parsek-${timeStamp}.jar")
+            archiveFileName.set("${rootProject.name}-${timeStamp}.jar")
         } else {
-            archiveFileName.set("Parsek.jar")
+            archiveFileName.set("${rootProject.name}.jar")
         }
     }
 }
@@ -117,11 +116,4 @@ tasks.named<JavaExec>("run") {
 
 application {
     mainClass.set(appMainClass)
-}
-
-tasks {
-    named<ShadowJar>("shadowJar") {
-        archiveClassifier.set("uber")
-        archiveBaseName.set("${project.name}-plugin-demo")
-    }
 }
