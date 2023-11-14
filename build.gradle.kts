@@ -119,3 +119,7 @@ tasks.named<JavaExec>("run") {
 application {
     mainClass.set(appMainClass)
 }
+
+tasks.named("jar").configure {
+    enabled = false
+}
