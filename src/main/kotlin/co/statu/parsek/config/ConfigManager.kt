@@ -58,7 +58,7 @@ class ConfigManager(
 
         val parsedConfig = ConfigFactory.parseString(config.toString())
 
-        if (!configFile.parentFile.exists()) {
+        if (configFile.parentFile != null && !configFile.parentFile.exists()) {
             configFile.parentFile.mkdirs()
         }
 
