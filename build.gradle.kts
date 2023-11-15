@@ -19,6 +19,7 @@ val buildType = "alpha"
 val timeStamp: String by project
 val fullVersion = if (project.hasProperty("timeStamp")) "$version-$buildType-$timeStamp" else "$version-$buildType"
 val buildDir by extra { file("${rootProject.layout.buildDirectory.get()}/libs") }
+val defaultJarEnabled: String? by project
 
 repositories {
     mavenCentral()
@@ -117,5 +118,5 @@ application {
 }
 
 tasks.named("jar").configure {
-    enabled = false
+    enabled = defaultJarEnabled.toBoolean()
 }
