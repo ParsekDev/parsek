@@ -4,8 +4,8 @@ import co.statu.parsek.PluginEventManager
 import co.statu.parsek.annotation.Endpoint
 import co.statu.parsek.api.event.RouterEventListener
 import co.statu.parsek.config.ConfigManager
+import co.statu.parsek.model.Api
 import co.statu.parsek.model.Route
-import co.statu.parsek.model.RouteType
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
@@ -60,6 +60,8 @@ class RouterProvider private constructor(
     )
 
     init {
+        val routerConfig = configManager.getConfig().getJsonObject("router")
+
         val beans = applicationContext.getBeansWithAnnotation(Endpoint::class.java)
 
         val routeList = beans.map { it.value as Route }.toMutableList()
@@ -86,25 +88,34 @@ class RouterProvider private constructor(
 
         routeList.forEach { route ->
             route.paths.forEach { path ->
-                val endpoint = when (path.routeType) {
-                    RouteType.ROUTE -> router.route(path.url)
-                    RouteType.GET -> router.get(path.url)
-                    RouteType.POST -> router.post(path.url)
-                    RouteType.DELETE -> router.delete(path.url)
-                    RouteType.PUT -> router.put(path.url)
+                var url = path.url
+                val httpMethod = path.routeType.vertxHttpMethod
+
+                if (route is Api) {
+                    val apiPrefix = routerConfig.getString("api-prefix")
+
+                    if (!url.startsWith(apiPrefix)) {
+                        url = apiPrefix + url
+                    }
                 }
 
-                endpoint
+                val routedRoute = if (httpMethod != null) {
+                    router.route(httpMethod, url)
+                } else {
+                    router.route(url)
+                }
+
+                routedRoute
                     .order(route.order)
 
                 val validationHandler = route.getValidationHandler(schemaParser)
 
                 if (validationHandler != null) {
-                    endpoint
+                    routedRoute
                         .handler(validationHandler)
                 }
 
-                endpoint
+                routedRoute
                     .handler(route.getHandler())
                     .failureHandler(route.getFailureHandler())
             }

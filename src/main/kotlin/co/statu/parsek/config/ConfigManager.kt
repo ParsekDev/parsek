@@ -33,7 +33,10 @@ class ConfigManager(
             JsonObject(
                 mapOf(
                     "config-version" to CONFIG_VERSION,
-                    "plugins" to JsonObject()
+                    "plugins" to JsonObject(),
+                    "router" to mapOf(
+                        "api-prefix" to "/api"
+                    )
                 )
             )
         }

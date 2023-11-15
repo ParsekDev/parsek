@@ -8,7 +8,7 @@ import io.vertx.json.schema.SchemaParser
 
 @Endpoint
 class HealthAPI : Api() {
-    override val paths = listOf(Path("/api/health", RouteType.GET))
+    override val paths = listOf(Path("/health", RouteType.GET))
 
     override fun getValidationHandler(schemaParser: SchemaParser): ValidationHandler? = null
 
