@@ -52,7 +52,15 @@ class PluginConfigManager<T : PluginConfig>(
         ) {
             logger.warn("Couldn't find config for \"${pluginId}\". Saving default config")
 
-            saveConfig()
+            val config = JsonObject(gson.toJson(config))
+
+            if (migrations.isNotEmpty()) {
+                val highestVersion = migrations.maxBy { it.VERSION }.VERSION
+
+                config.put("version", highestVersion)
+            }
+
+            saveConfig(config)
         }
     }
 
