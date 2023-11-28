@@ -1,4 +1,5 @@
 val vertxVersion: String by project
+val gsonVersion: String by project
 val log4jVersion = "2.21.1"
 val appMainClass = "co.statu.parsek.Main"
 val pf4jVersion: String by project
@@ -57,7 +58,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.13.0")
 
     // https://mvnrepository.com/artifact/com.google.code.gson/gson
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.code.gson:gson:$gsonVersion")
 
     implementation("org.ow2.asm:asm:9.6")
 
