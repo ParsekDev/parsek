@@ -36,6 +36,10 @@ class ConfigManager(
                     "plugins" to JsonObject(),
                     "router" to mapOf(
                         "api-prefix" to "/api"
+                    ),
+                    "server" to mapOf(
+                        "host" to "0.0.0.0",
+                        "port" to 8088
                     )
                 )
             )
