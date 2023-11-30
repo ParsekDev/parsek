@@ -99,6 +99,7 @@ class Main : CoroutineVerticle() {
         )
 
         logger.info("Hello World!")
+        logger.info("Current environment: ${ENVIRONMENT.name}")
 
         init()
 
