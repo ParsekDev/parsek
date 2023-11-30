@@ -66,7 +66,7 @@ class Main : CoroutineVerticle() {
                 } catch (e: Exception) {
                     System.getenv("ParsekBuildType").toString()
                 }
-            )
+            )!!
         }
 
         @JvmStatic

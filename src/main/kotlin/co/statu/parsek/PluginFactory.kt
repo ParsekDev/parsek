@@ -18,7 +18,9 @@ class PluginFactory : DefaultPluginFactory() {
         val context = PluginContext(
             pluginId = pluginWrapper.pluginId,
             vertx = vertx,
-            pluginEventManager
+            pluginEventManager,
+            Main.ENVIRONMENT,
+            Main.STAGE
         )
 
         try {
