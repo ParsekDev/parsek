@@ -1,6 +1,7 @@
 package co.statu.parsek.util
 
-import io.vertx.ext.web.handler.sockjs.impl.StringEscapeUtils
+
+import org.apache.commons.text.StringEscapeUtils
 
 object TextUtil {
     fun convertStringToUrl(string: String, limit: Int = 200) =
@@ -18,8 +19,9 @@ object TextUtil {
         return result
     }
 
-    fun removeQuotesAndUnescape(uncleanJson: String): String {
-        val noQuotes = uncleanJson.replace("^\"|\"$".toRegex(), "")
-        return StringEscapeUtils.unescapeJava(noQuotes)
+    fun unescapeJson(uncleanJson: String): String {
+        return StringEscapeUtils.unescapeJson(uncleanJson)
+            .replace("\"{\"", "{\"")
+            .replace("\"}\"", "\"}")
     }
 }

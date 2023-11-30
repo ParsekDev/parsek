@@ -19,7 +19,6 @@ interface Result {
             response.putAll(this)
 
             return JsonObject(response).encode()
-
         }
     }
 }
