@@ -68,6 +68,8 @@ dependencies {
 
     implementation("org.ow2.asm:asm:9.6")
 
+    // https://mvnrepository.com/artifact/com.github.jknack/handlebars
+    implementation("com.github.jknack:handlebars:4.3.1")
 }
 
 tasks {

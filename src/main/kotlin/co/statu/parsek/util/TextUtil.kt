@@ -1,9 +1,14 @@
 package co.statu.parsek.util
 
 
+import com.github.jknack.handlebars.Handlebars
 import org.apache.commons.text.StringEscapeUtils
 
 object TextUtil {
+    private val handlebars by lazy {
+        Handlebars()
+    }
+
     fun convertStringToUrl(string: String, limit: Int = 200) =
         string
             .replace("\\s+".toRegex(), "-")
@@ -24,4 +29,6 @@ object TextUtil {
             .replace("\"{\"", "{\"")
             .replace("\"}\"", "\"}")
     }
+
+    fun String.compileInline() = handlebars.compileInline(this)
 }
