@@ -1,5 +1,6 @@
 package co.statu.parsek.util
 
+import java.time.Instant
 import java.util.*
 
 object DateUtil {
@@ -12,4 +13,8 @@ object DateUtil {
 
         return calendar.timeInMillis
     }
+
+    fun convertISO8601ToMillis(iso8601Date: String) = Instant
+        .parse(iso8601Date)
+        .toEpochMilli()
 }
