@@ -1,5 +1,6 @@
 val vertxVersion: String by project
 val gsonVersion: String by project
+val handlebarsVersion: String by project
 val log4jVersion = "2.21.1"
 val appMainClass = "co.statu.parsek.Main"
 val pf4jVersion: String by project
@@ -37,6 +38,7 @@ dependencies {
     testImplementation("io.vertx:vertx-unit:$vertxVersion")
 
     implementation("io.vertx:vertx-web:$vertxVersion")
+    implementation("io.vertx:vertx-web-client:$vertxVersion")
     implementation("io.vertx:vertx-lang-kotlin:$vertxVersion")
     implementation("io.vertx:vertx-config:$vertxVersion")
     implementation("io.vertx:vertx-config-hocon:$vertxVersion")
@@ -69,7 +71,7 @@ dependencies {
     implementation("org.ow2.asm:asm:9.6")
 
     // https://mvnrepository.com/artifact/com.github.jknack/handlebars
-    implementation("com.github.jknack:handlebars:4.3.1")
+    implementation("com.github.jknack:handlebars:$handlebarsVersion")
 }
 
 tasks {
