@@ -28,6 +28,7 @@ object TextUtil {
         return StringEscapeUtils.unescapeJson(uncleanJson)
             .replace("\"{\"", "{\"")
             .replace("\"}\"", "\"}")
+            .replace("}\",", "},")
     }
 
     fun String.compileInline() = handlebars.compileInline(this)
