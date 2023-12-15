@@ -2,7 +2,6 @@ package co.statu.parsek.util
 
 
 import com.github.jknack.handlebars.Handlebars
-import org.apache.commons.text.StringEscapeUtils
 
 object TextUtil {
     private val handlebars by lazy {
@@ -25,10 +24,10 @@ object TextUtil {
     }
 
     fun unescapeJson(uncleanJson: String): String {
-        return StringEscapeUtils.unescapeJson(uncleanJson)
+        return uncleanJson
             .replace("\"{\"", "{\"")
             .replace("\"}\"", "\"}")
-            .replace("}\",", "},")
+//            .replace("}\",", "},")
     }
 
     fun String.compileInline() = handlebars.compileInline(this)
