@@ -72,6 +72,9 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.github.jknack/handlebars
     implementation("com.github.jknack:handlebars:$handlebarsVersion")
+
+    // https://mvnrepository.com/artifact/commons-validator/commons-validator
+    implementation("commons-validator:commons-validator:1.8.0")
 }
 
 tasks {
