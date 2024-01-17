@@ -54,20 +54,22 @@ dependencies {
     implementation(group = "commons-codec", name = "commons-codec", version = "1.16.0")
 
     // https://mvnrepository.com/artifact/org.springframework/spring-context
-    implementation("org.springframework:spring-context:5.3.30")
+    implementation("org.springframework:spring-context:5.3.31")
 
     implementation("org.pf4j:pf4j:${pf4jVersion}")
 
     implementation("org.apache.commons:commons-lang3:3.13.0")
+
     // https://mvnrepository.com/artifact/org.apache.commons/commons-text
     implementation("org.apache.commons:commons-text:1.11.0")
 
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
 
     // https://mvnrepository.com/artifact/com.google.code.gson/gson
     implementation("com.google.code.gson:gson:$gsonVersion")
 
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm
     implementation("org.ow2.asm:asm:9.6")
 
     // https://mvnrepository.com/artifact/com.github.jknack/handlebars
