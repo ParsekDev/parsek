@@ -46,4 +46,4 @@ jobs:
           title: "Alpha Build - ${{ steps.time.outputs.time }}"
           files: |
             LICENSE
-            *.jar
+            build/libs/*.jar
