@@ -15,11 +15,11 @@
         "assets": [
           {
             "path": "build/libs/*.jar",
-            "label": "Parsek Core"
+            "label": false
           },
           {
             "path": "LICENSE",
-            "label": "LICENSE"
+            "label": false
           }
         ]
       }
