@@ -18,7 +18,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Get Time
         id: time
@@ -37,13 +37,23 @@ jobs:
         with:
           arguments: buildDev -PtimeStamp=${{ steps.time.outputs.time }}
 
-      - name: Publish Alpha Release
-        uses: "marvinpinto/action-automatic-releases@latest"
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          repo_token: "${{ secrets.TOKEN_GITHUB }}"
-          automatic_release_tag: "alpha-${{ steps.time.outputs.time }}"
-          prerelease: true
-          title: "Alpha Build - ${{ steps.time.outputs.time }}"
-          files: |
-            LICENSE
-            build/libs/*.jar
+          node-version: "lts/*"
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+        run: npx semantic-release
+
+#      - name: Publish Alpha Release
+#        uses: "marvinpinto/action-automatic-releases@latest"
+#        with:
+#          repo_token: "${{ secrets.TOKEN_GITHUB }}"
+#          automatic_release_tag: "alpha-${{ steps.time.outputs.time }}"
+#          prerelease: true
+#          title: "Alpha Build - ${{ steps.time.outputs.time }}"
+#          files: |
+#            LICENSE
+#            build/libs/*.jar
