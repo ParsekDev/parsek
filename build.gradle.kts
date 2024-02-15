@@ -12,10 +12,11 @@ plugins {
     kotlin("kapt") version "1.9.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     application
+    `maven-publish`
 }
 
 group = "co.statu.parsek"
-version = "1.0.0"
+version = "0.0.1"
 
 val buildType = "alpha"
 val timeStamp: String by project
@@ -119,6 +120,10 @@ tasks {
         } else {
             archiveFileName.set("${rootProject.name}.jar")
         }
+
+        if (project.gradle.startParameter.taskNames.contains("publish")) {
+            archiveFileName.set(archiveFileName.get().lowercase())
+        }
     }
 }
 
@@ -135,4 +140,26 @@ application {
 
 tasks.named("jar").configure {
     enabled = defaultJarEnabled.toBoolean()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "Parsek"
+            url = uri("https://maven.pkg.github.com/StatuParsek/Parsek")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME_GITHUB")
+                password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN_GITHUB")
+            }
+        }
+    }
+
+    publications {
+        create<MavenPublication>("shadow") {
+            project.extensions.configure<com.github.jengelman.gradle.plugins.shadow.ShadowExtension> {
+                artifactId = "core"
+                component(this@create)
+            }
+        }
+    }
 }
