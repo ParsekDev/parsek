@@ -40,7 +40,7 @@ jobs:
       - name: Publish Alpha Release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          repo_token: "${{ secrets.token }}"
+          repo_token: "${{ secrets.TOKEN_GITHUB }}"
           automatic_release_tag: "alpha-${{ steps.time.outputs.time }}"
           prerelease: true
           title: "Alpha Build - ${{ steps.time.outputs.time }}"
