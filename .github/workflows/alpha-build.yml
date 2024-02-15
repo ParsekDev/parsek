@@ -45,7 +45,7 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-        run: npx semantic-release -e .releaserc.json
+        run: npx semantic-release
 
 #      - name: Publish Alpha Release
 #        uses: "marvinpinto/action-automatic-releases@latest"

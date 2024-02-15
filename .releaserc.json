@@ -1,18 +1,28 @@
 {
-  "release": {
-    "branches": ["main", "dev"]
-  },
+  "branches": [
+    "main",
+    {
+      "name": "dev",
+      "prerelease": true
+    }
+  ],
   "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
-      [
-        "@semantic-release/github",
-        {
-          "assets": [
-            { "path": "build/libs/*.jar", "label": "Parsek Core" },
-            { "path": "LICENSE", "label": "LICENSE" }
-          ]
-        }
-      ]
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "build/libs/*.jar",
+            "label": "Parsek Core"
+          },
+          {
+            "path": "LICENSE",
+            "label": "LICENSE"
+          }
+        ]
+      }
     ]
+  ]
 }
