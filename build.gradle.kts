@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "co.statu.parsek"
-version = "0.0.1"
+version = "1.0.0"
 
 val buildType = "alpha"
 val timeStamp: String by project
