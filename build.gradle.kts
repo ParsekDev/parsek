@@ -15,12 +15,11 @@ plugins {
     `maven-publish`
 }
 
-group = "co.statu.parsek"
-version = "1.0.0"
+group = "co.statu"
+version = project.findProperty("version") ?: "0.0.1"
 
-val buildType = "alpha"
+val buildType = project.findProperty("buildType") as String? ?: "alpha"
 val timeStamp: String by project
-val fullVersion = if (project.hasProperty("timeStamp")) "$version-$buildType-$timeStamp" else "$version-$buildType"
 val buildDir by extra { file("${rootProject.layout.buildDirectory.get()}/libs") }
 val defaultJarEnabled: String? by project
 
@@ -109,7 +108,7 @@ tasks {
             if (project.gradle.startParameter.taskNames.contains("buildDev"))
                 attrMap["MODE"] = "DEVELOPMENT"
 
-            attrMap["VERSION"] = fullVersion
+            attrMap["VERSION"] = version.toString()
             attrMap["BUILD_TYPE"] = buildType
 
             attributes(attrMap)
@@ -129,7 +128,7 @@ tasks {
 
 tasks.named<JavaExec>("run") {
     environment("EnvironmentType", "DEVELOPMENT")
-    environment("ParsekVersion", fullVersion)
+    environment("ParsekVersion", version)
     environment("ParsekBuildType", buildType)
     systemProperty("pf4j.pluginsDir", pluginsDir.absolutePath)
 }
