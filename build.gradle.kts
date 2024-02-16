@@ -102,6 +102,8 @@ tasks {
     }
 
     shadowJar {
+        dependsOn(distTar, distZip)
+
         manifest {
             val attrMap = mutableMapOf<String, String>()
 
