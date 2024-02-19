@@ -4,10 +4,9 @@ val handlebarsVersion: String by project
 val log4jVersion = "2.21.1"
 val appMainClass = "co.statu.parsek.Main"
 val pf4jVersion: String by project
-val pluginsDir: File by rootProject.extra
+val pluginsDir: File? by rootProject.extra
 
 plugins {
-    java
     kotlin("jvm") version "1.9.20"
     kotlin("kapt") version "1.9.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
@@ -132,7 +131,7 @@ tasks.named<JavaExec>("run") {
     environment("EnvironmentType", "DEVELOPMENT")
     environment("ParsekVersion", version)
     environment("ParsekBuildType", buildType)
-    systemProperty("pf4j.pluginsDir", pluginsDir.absolutePath)
+    pluginsDir?.let { systemProperty("pf4j.pluginsDir", it.absolutePath) }
 }
 
 application {
