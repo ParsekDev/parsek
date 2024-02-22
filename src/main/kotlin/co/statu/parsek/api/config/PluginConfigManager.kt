@@ -11,7 +11,8 @@ class PluginConfigManager<T : PluginConfig>(
     plugin: ParsekPlugin,
     private val pluginConfigClass: Class<T>,
     private val logger: Logger,
-    private val migrations: List<PluginConfigMigration> = listOf()
+    private val migrations: List<PluginConfigMigration> = listOf(),
+    private val exPluginIds: List<String> = listOf()
 ) {
     companion object {
         private val gson = Gson()
@@ -50,9 +51,47 @@ class PluginConfigManager<T : PluginConfig>(
                 .getJsonObject("plugins")
                 .getJsonObject(pluginId) == null
         ) {
-            logger.warn("Couldn't find config for \"${pluginId}\". Saving default config")
+            val pluginConfigs = configManager.getConfig().getJsonObject("plugins")
 
             val config = JsonObject(gson.toJson(config))
+
+            if (exPluginIds.isNotEmpty()) {
+                val foundExId = exPluginIds.reversed().firstOrNull {
+                    pluginConfigs.getJsonObject(it) != null
+                }
+
+                if (foundExId != null) {
+                    val currentConfigVersion = if (migrations.isNotEmpty()) {
+                        migrations.maxBy { it.VERSION }.VERSION
+                    } else {
+                        1
+                    }
+
+                    val exConfig = pluginConfigs.getJsonObject(foundExId)
+
+                    var shouldMigrate = false
+
+                    if (exConfig.getInteger("version") == currentConfigVersion) {
+                        val keysAreSame = config.map.keys.none { !exConfig.map.containsKey(it) }
+
+                        if (keysAreSame) {
+                            shouldMigrate = true
+                        }
+                    } else {
+                        shouldMigrate = true
+                    }
+
+                    if (shouldMigrate) {
+                        pluginConfigs.remove(foundExId)
+
+                        saveConfig(exConfig)
+                    }
+
+                    return
+                }
+            }
+
+            logger.warn("Couldn't find config for \"${pluginId}\". Saving default config")
 
             if (migrations.isNotEmpty()) {
                 val highestVersion = migrations.maxBy { it.VERSION }.VERSION
