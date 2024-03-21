@@ -18,7 +18,7 @@ class PluginConfigManager<T : PluginConfig>(
         private val gson = Gson()
     }
 
-    private val pluginId = plugin.context.pluginId
+    private val pluginId = plugin.pluginId
     private var isMigrated = false
 
     private var configAsJsonObject = configManager.getConfig()

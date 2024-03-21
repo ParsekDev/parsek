@@ -1,7 +1,7 @@
 package co.statu.parsek
 
 import co.statu.parsek.annotation.Boot
-import co.statu.parsek.api.event.ParsekEventListener
+import co.statu.parsek.api.event.CoreEventListener
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.util.TimeUtil
 import io.vertx.core.Vertx
@@ -77,6 +77,8 @@ class Main : CoroutineVerticle() {
         enum class EnvironmentType {
             DEVELOPMENT, RELEASE
         }
+
+        internal lateinit var applicationContext: AnnotationConfigApplicationContext
     }
 
     private val logger by lazy {
@@ -84,7 +86,6 @@ class Main : CoroutineVerticle() {
     }
 
     private lateinit var router: Router
-    private lateinit var applicationContext: AnnotationConfigApplicationContext
     private lateinit var configManager: ConfigManager
     private lateinit var pluginManager: PluginManager
 
@@ -146,7 +147,7 @@ class Main : CoroutineVerticle() {
         configManager.init()
 
         try {
-            val parsekEventHandlers = PluginEventManager.getEventHandlers<ParsekEventListener>()
+            val parsekEventHandlers = PluginEventManager.getParsekEventListeners<CoreEventListener>()
 
             parsekEventHandlers.forEach { eventHandler ->
                 eventHandler.onConfigManagerReady(configManager)

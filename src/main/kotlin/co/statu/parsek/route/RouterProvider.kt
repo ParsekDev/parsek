@@ -66,7 +66,7 @@ class RouterProvider private constructor(
 
         val routeList = beans.map { it.value as Route }.toMutableList()
 
-        val routerEventHandlers = PluginEventManager.getEventHandlers<RouterEventListener>()
+        val routerEventHandlers = PluginEventManager.getParsekEventListeners<RouterEventListener>()
 
         routerEventHandlers.forEach { eventHandler ->
             eventHandler.onInitRouteList(routeList)

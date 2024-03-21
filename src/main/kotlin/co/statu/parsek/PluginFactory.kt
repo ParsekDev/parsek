@@ -3,11 +3,12 @@ package co.statu.parsek
 import co.statu.parsek.PluginManager.Companion.pluginEventManager
 import co.statu.parsek.SpringConfig.Companion.vertx
 import co.statu.parsek.api.ParsekPlugin
-import co.statu.parsek.api.PluginContext
+import kotlinx.coroutines.runBlocking
 import org.pf4j.DefaultPluginFactory
 import org.pf4j.Plugin
 import org.pf4j.PluginWrapper
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 class PluginFactory : DefaultPluginFactory() {
     companion object {
@@ -15,18 +16,37 @@ class PluginFactory : DefaultPluginFactory() {
     }
 
     override fun createInstance(pluginClass: Class<*>, pluginWrapper: PluginWrapper): Plugin? {
-        val context = PluginContext(
-            pluginId = pluginWrapper.pluginId,
-            vertx = vertx,
-            pluginEventManager,
-            Main.ENVIRONMENT,
-            Main.STAGE
-        )
+        val pluginBeanContext by lazy {
+            val pluginBeanContext = AnnotationConfigApplicationContext()
+
+            pluginBeanContext.parent = Main.applicationContext
+            pluginBeanContext.classLoader = pluginClass.classLoader
+            pluginBeanContext.scan(pluginClass.`package`.name)
+            pluginBeanContext.refresh()
+
+            pluginBeanContext
+        }
 
         try {
-            val constructor = pluginClass.getConstructor(PluginContext::class.java)
+            val constructor = pluginClass.getConstructor()
 
-            return constructor.newInstance(context) as ParsekPlugin
+            val plugin = constructor.newInstance() as ParsekPlugin
+
+            pluginEventManager.initializePlugin(plugin, pluginBeanContext)
+
+            plugin.pluginId = pluginWrapper.pluginId
+            plugin.vertx = vertx
+            plugin.pluginEventManager = pluginEventManager
+            plugin.environmentType = Main.ENVIRONMENT
+            plugin.releaseStage = Main.STAGE
+            plugin.pluginBeanContext = pluginBeanContext
+            plugin.applicationContext = Main.applicationContext
+
+            runBlocking {
+                plugin.onLoad()
+            }
+
+            return plugin
         } catch (e: Exception) {
             logger.error(e.message, e)
         }

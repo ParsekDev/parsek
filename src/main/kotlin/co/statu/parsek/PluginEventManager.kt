@@ -1,50 +1,45 @@
 package co.statu.parsek
 
-import co.statu.parsek.api.ParsekEvent
 import co.statu.parsek.api.ParsekPlugin
-import co.statu.parsek.api.PluginEvent
+import co.statu.parsek.api.event.EventListener
+import co.statu.parsek.api.event.ParsekEventListener
+import co.statu.parsek.api.event.PluginEventListener
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 class PluginEventManager {
-    @PublishedApi
-    internal val pluginEventListeners = mutableMapOf<ParsekPlugin, MutableList<PluginEvent>>()
-
     companion object {
-        internal val parsekEventListeners = mutableMapOf<ParsekPlugin, MutableList<ParsekEvent>>()
+        private val eventListeners = mutableMapOf<ParsekPlugin, MutableList<EventListener>>()
 
-        internal inline fun <reified T : ParsekEvent> getEventHandlers() =
-            parsekEventListeners.flatMap { it.value }.filterIsInstance<T>()
+        fun getEventListeners() = eventListeners.toMap()
+
+        internal inline fun <reified T : ParsekEventListener> getParsekEventListeners() =
+            eventListeners.flatMap { it.value }.filterIsInstance<T>()
+
+
+        inline fun <reified T : PluginEventListener> getEventListeners() =
+            getEventListeners().flatMap { it.value }.filter { it !is ParsekEventListener }.filterIsInstance<T>()
     }
 
-    private fun initializePluginIfNot(plugin: ParsekPlugin) {
-        if (pluginEventListeners[plugin] == null) {
-            pluginEventListeners[plugin] = mutableListOf()
+    internal fun initializePlugin(plugin: ParsekPlugin, pluginBeanContext: AnnotationConfigApplicationContext) {
+        if (eventListeners[plugin] == null) {
+            eventListeners[plugin] = pluginBeanContext
+                .getBeansWithAnnotation(co.statu.parsek.api.annotation.EventListener::class.java)
+                .map { it.value as EventListener }
+                .toMutableList()
         }
+    }
 
-        if (parsekEventListeners[plugin] == null) {
-            parsekEventListeners[plugin] = mutableListOf()
+    internal fun unregisterPlugin(plugin: ParsekPlugin) {
+        eventListeners.remove(plugin)
+    }
+
+    fun register(plugin: ParsekPlugin, eventListener: EventListener) {
+        if (eventListeners[plugin]!!.none { it::class == eventListener::class }) {
+            eventListeners[plugin]!!.add(eventListener)
         }
     }
 
-    fun register(plugin: ParsekPlugin, pluginEvent: PluginEvent) {
-        initializePluginIfNot(plugin)
-
-        pluginEventListeners[plugin]!!.add(pluginEvent)
+    fun unRegister(plugin: ParsekPlugin, eventListener: EventListener) {
+        eventListeners[plugin]?.remove(eventListener)
     }
-
-    fun register(plugin: ParsekPlugin, parsekEvent: ParsekEvent) {
-        initializePluginIfNot(plugin)
-
-        parsekEventListeners[plugin]!!.add(parsekEvent)
-    }
-
-    fun unregister(plugin: ParsekPlugin, pluginEvent: PluginEvent) {
-        pluginEventListeners[plugin]?.remove(pluginEvent)
-    }
-
-    fun unregister(plugin: ParsekPlugin, parsekEvent: ParsekEvent) {
-        parsekEventListeners[plugin]?.remove(parsekEvent)
-    }
-
-    inline fun <reified T : PluginEvent> getEventHandlers() =
-        pluginEventListeners.flatMap { it.value }.filterIsInstance<T>()
 }
