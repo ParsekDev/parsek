@@ -16,31 +16,37 @@ class PluginFactory : DefaultPluginFactory() {
     }
 
     override fun createInstance(pluginClass: Class<*>, pluginWrapper: PluginWrapper): Plugin? {
-        val pluginBeanContext by lazy {
-            val pluginBeanContext = AnnotationConfigApplicationContext()
-
-            pluginBeanContext.parent = Main.applicationContext
-            pluginBeanContext.classLoader = pluginClass.classLoader
-            pluginBeanContext.scan(pluginClass.`package`.name)
-            pluginBeanContext.refresh()
-
-            pluginBeanContext
-        }
-
         try {
             val constructor = pluginClass.getConstructor()
 
             val plugin = constructor.newInstance() as ParsekPlugin
-
-            pluginEventManager.initializePlugin(plugin, pluginBeanContext)
 
             plugin.pluginId = pluginWrapper.pluginId
             plugin.vertx = vertx
             plugin.pluginEventManager = pluginEventManager
             plugin.environmentType = Main.ENVIRONMENT
             plugin.releaseStage = Main.STAGE
-            plugin.pluginBeanContext = pluginBeanContext
             plugin.applicationContext = Main.applicationContext
+
+            val pluginBeanContext by lazy {
+                val pluginBeanContext = AnnotationConfigApplicationContext()
+
+                pluginBeanContext.parent = Main.applicationContext
+                pluginBeanContext.classLoader = pluginClass.classLoader
+                pluginBeanContext.scan(pluginClass.`package`.name)
+
+                pluginBeanContext.beanFactory.registerSingleton(logger.javaClass.name, logger)
+                pluginBeanContext.beanFactory.registerSingleton(pluginEventManager.javaClass.name, pluginEventManager)
+                pluginBeanContext.beanFactory.registerSingleton(plugin.javaClass.name, plugin)
+
+                pluginBeanContext.refresh()
+
+                pluginBeanContext
+            }
+
+            plugin.pluginBeanContext = pluginBeanContext
+
+            pluginEventManager.initializePlugin(plugin, pluginBeanContext)
 
             runBlocking {
                 plugin.onLoad()
