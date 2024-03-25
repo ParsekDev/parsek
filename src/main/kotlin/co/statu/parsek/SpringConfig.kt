@@ -45,9 +45,10 @@ open class SpringConfig {
     @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
     open fun router(
         schemaParser: SchemaParser,
-        configManager: ConfigManager
+        configManager: ConfigManager,
+        pluginManager: PluginManager
     ) =
-        RouterProvider.create(vertx, applicationContext, schemaParser, configManager)
+        RouterProvider.create(vertx, applicationContext, schemaParser, configManager, pluginManager)
             .provide()
 
     @Bean

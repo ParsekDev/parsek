@@ -26,18 +26,21 @@ abstract class ParsekPlugin : Plugin() {
     lateinit var pluginBeanContext: AnnotationConfigApplicationContext
         internal set
 
+    lateinit var pluginGlobalBeanContext: AnnotationConfigApplicationContext
+        internal set
+
     internal lateinit var applicationContext: AnnotationConfigApplicationContext
 
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-    private val registeredBeans = mutableListOf<Class<*>>()
+    private val registeredBeans = mutableListOf<Any>()
 
-    fun register(bean: Class<*>) {
+    fun registerSingletonGlobal(bean: Any) {
         if (registeredBeans.contains(bean)) {
             return
         }
 
-        applicationContext.register(bean)
+        pluginGlobalBeanContext.beanFactory.registerSingleton(bean.javaClass.name, bean)
 
         registeredBeans.add(bean)
     }
@@ -46,20 +49,14 @@ abstract class ParsekPlugin : Plugin() {
         pluginEventManager.register(this, eventListener)
     }
 
-    fun unRegister(bean: Class<*>) {
+    fun unRegisterGlobal(bean: Any) {
         if (!registeredBeans.contains(bean)) {
             return
         }
 
-        val registry = applicationContext.beanFactory as BeanDefinitionRegistry
-        val beanNames = registry.beanDefinitionNames
+        val registry = pluginGlobalBeanContext.beanFactory as BeanDefinitionRegistry
 
-        for (beanName in beanNames) {
-            if (registry.getBeanDefinition(beanName).beanClassName == bean.name) {
-                registry.removeBeanDefinition(beanName)
-                return // Stop after removing the first bean definition of the given class
-            }
-        }
+        registry.removeBeanDefinition(bean.javaClass.name)
 
         registeredBeans.remove(bean)
     }
@@ -82,7 +79,7 @@ abstract class ParsekPlugin : Plugin() {
         val copyOfRegisteredBeans = registeredBeans.toList()
 
         copyOfRegisteredBeans.forEach {
-            unRegister(it)
+            unRegisterGlobal(it)
         }
 
         pluginEventManager.unregisterPlugin(this)

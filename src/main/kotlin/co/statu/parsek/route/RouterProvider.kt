@@ -1,7 +1,9 @@
 package co.statu.parsek.route
 
 import co.statu.parsek.PluginEventManager
+import co.statu.parsek.PluginManager
 import co.statu.parsek.annotation.Endpoint
+import co.statu.parsek.api.ParsekPlugin
 import co.statu.parsek.api.event.RouterEventListener
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.model.Api
@@ -14,22 +16,25 @@ import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.LocalSessionStore
 import io.vertx.json.schema.SchemaParser
+import org.pf4j.PluginWrapper
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 class RouterProvider private constructor(
     vertx: Vertx,
     applicationContext: AnnotationConfigApplicationContext,
     schemaParser: SchemaParser,
-    configManager: ConfigManager
+    configManager: ConfigManager,
+    pluginManager: PluginManager
 ) {
     companion object {
         fun create(
             vertx: Vertx,
             applicationContext: AnnotationConfigApplicationContext,
             schemaParser: SchemaParser,
-            configManager: ConfigManager
+            configManager: ConfigManager,
+            pluginManager: PluginManager
         ) =
-            RouterProvider(vertx, applicationContext, schemaParser, configManager)
+            RouterProvider(vertx, applicationContext, schemaParser, configManager, pluginManager)
 
         private var isInitialized = false
 
@@ -62,9 +67,14 @@ class RouterProvider private constructor(
     init {
         val routerConfig = configManager.getConfig().getJsonObject("router")
 
-        val beans = applicationContext.getBeansWithAnnotation(Endpoint::class.java)
+        val routeList = mutableListOf<Route>()
 
-        val routeList = beans.map { it.value as Route }.toMutableList()
+        routeList.addAll(applicationContext.getBeansWithAnnotation(Endpoint::class.java).map { it.value as Route })
+        routeList.addAll(pluginManager.plugins.map {
+            ((it as PluginWrapper).plugin as ParsekPlugin).pluginBeanContext.getBeansWithAnnotation(
+                Endpoint::class.java
+            )
+        }.flatMap { it.values }.map { it as Route })
 
         val routerEventHandlers = PluginEventManager.getParsekEventListeners<RouterEventListener>()
 

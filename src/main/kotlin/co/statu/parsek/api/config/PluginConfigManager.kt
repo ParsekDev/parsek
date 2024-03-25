@@ -5,15 +5,17 @@ import co.statu.parsek.config.ConfigManager
 import com.google.gson.Gson
 import io.vertx.core.json.JsonObject
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class PluginConfigManager<T : PluginConfig>(
     private val configManager: ConfigManager,
     plugin: ParsekPlugin,
     private val pluginConfigClass: Class<T>,
-    private val logger: Logger,
     private val migrations: List<PluginConfigMigration> = listOf(),
     private val exPluginIds: List<String> = listOf()
 ) {
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
     companion object {
         private val gson = Gson()
     }
