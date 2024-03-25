@@ -53,7 +53,7 @@ dependencies {
     implementation(group = "commons-codec", name = "commons-codec", version = "1.16.0")
 
     // https://mvnrepository.com/artifact/org.springframework/spring-context
-    implementation("org.springframework:spring-context:5.3.31")
+    implementation("org.springframework:spring-context:5.3.33")
 
     implementation("org.pf4j:pf4j:${pf4jVersion}")
 
