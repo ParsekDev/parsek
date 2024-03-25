@@ -1,5 +1,6 @@
 val vertxVersion: String by project
 val gsonVersion: String by project
+val springContextVersion: String by project
 val handlebarsVersion: String by project
 val log4jVersion = "2.21.1"
 val appMainClass = "co.statu.parsek.Main"
@@ -53,7 +54,7 @@ dependencies {
     implementation(group = "commons-codec", name = "commons-codec", version = "1.16.0")
 
     // https://mvnrepository.com/artifact/org.springframework/spring-context
-    implementation("org.springframework:spring-context:5.3.33")
+    implementation("org.springframework:spring-context:$springContextVersion")
 
     implementation("org.pf4j:pf4j:${pf4jVersion}")
 
