@@ -114,6 +114,7 @@ class PluginConfigManager<T : PluginConfig>(
                 configAsJsonObject.put("version", migration.VERSION)
 
                 migration.migrate(configAsJsonObject)
+                migration.migrateFully(configManager.getConfig())
 
                 migrate(migration.VERSION, false)
                 isMigrated = true
