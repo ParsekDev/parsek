@@ -71,7 +71,7 @@ class RouterProvider private constructor(
         val routerEventHandlers = PluginEventManager.getParsekEventListeners<RouterEventListener>()
 
         routerEventHandlers.forEach { eventHandler ->
-            eventHandler.onRouterCreate(router)
+            eventHandler.onRouterCreate()
         }
 
         routeList.addAll(applicationContext.getBeansWithAnnotation(Endpoint::class.java).map { it.value as Route })
