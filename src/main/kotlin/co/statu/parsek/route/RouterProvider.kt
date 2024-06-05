@@ -68,6 +68,11 @@ class RouterProvider private constructor(
         val routerConfig = configManager.getConfig().getJsonObject("router")
 
         val routeList = mutableListOf<Route>()
+        val routerEventHandlers = PluginEventManager.getParsekEventListeners<RouterEventListener>()
+
+        routerEventHandlers.forEach { eventHandler ->
+            eventHandler.onRouterCreate(router)
+        }
 
         routeList.addAll(applicationContext.getBeansWithAnnotation(Endpoint::class.java).map { it.value as Route })
         routeList.addAll(pluginManager.plugins.map {
@@ -76,7 +81,6 @@ class RouterProvider private constructor(
             )
         }.flatMap { it.values }.map { it as Route })
 
-        val routerEventHandlers = PluginEventManager.getParsekEventListeners<RouterEventListener>()
 
         routerEventHandlers.forEach { eventHandler ->
             eventHandler.onInitRouteList(routeList)
