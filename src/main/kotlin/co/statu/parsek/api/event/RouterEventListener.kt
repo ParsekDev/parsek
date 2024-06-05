@@ -5,7 +5,7 @@ import io.vertx.ext.web.Router
 
 interface RouterEventListener : ParsekEventListener {
 
-    fun onInitRouteList(routes: MutableList<Route>)
+    fun onInitRouteList(routes: MutableList<Route>) {}
 
-    fun onRouterCreate(router: Router)
+    fun onRouterCreate(router: Router) {}
 }
