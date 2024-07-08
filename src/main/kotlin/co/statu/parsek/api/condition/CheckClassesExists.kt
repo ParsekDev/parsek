@@ -10,7 +10,7 @@ class CheckClassesExists : Condition {
         if (metadata is ClassMetadata) {
             val className = metadata.className
             try {
-                val clazz = Class.forName(className)
+                val clazz = context.classLoader!!.loadClass(className)
                 clazz.interfaces // check if any of them are not exists
                 return true
             } catch (e: NoClassDefFoundError) {
