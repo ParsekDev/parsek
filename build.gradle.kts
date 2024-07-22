@@ -77,6 +77,9 @@ dependencies {
 
     // https://mvnrepository.com/artifact/commons-validator/commons-validator
     implementation("commons-validator:commons-validator:1.8.0")
+
+    // https://mvnrepository.com/artifact/com.jcabi/jcabi-manifests
+    implementation("com.jcabi:jcabi-manifests:2.1.0")
 }
 
 tasks {

@@ -4,13 +4,13 @@ import co.statu.parsek.annotation.Boot
 import co.statu.parsek.api.event.CoreEventListener
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.util.TimeUtil
+import com.jcabi.manifests.Manifests
 import io.vertx.core.Vertx
 import io.vertx.core.VertxOptions
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import java.util.jar.Manifest
 import kotlin.system.exitProcess
 
 @Boot
@@ -26,11 +26,7 @@ class Main : CoroutineVerticle() {
 
         private val mode by lazy {
             try {
-                val urlClassLoader = ClassLoader.getSystemClassLoader()
-                val manifestUrl = urlClassLoader.getResourceAsStream("META-INF/MANIFEST.MF")
-                val manifest = Manifest(manifestUrl)
-
-                manifest.mainAttributes.getValue("MODE").toString()
+                Manifests.read("MODE").toString()
             } catch (e: Exception) {
                 "RELEASE"
             }
@@ -44,11 +40,7 @@ class Main : CoroutineVerticle() {
 
         val VERSION by lazy {
             try {
-                val urlClassLoader = ClassLoader.getSystemClassLoader()
-                val manifestUrl = urlClassLoader.getResourceAsStream("META-INF/MANIFEST.MF")
-                val manifest = Manifest(manifestUrl)
-
-                manifest.mainAttributes.getValue("VERSION").toString()
+                Manifests.read("VERSION").toString()
             } catch (e: Exception) {
                 System.getenv("ParsekVersion").toString()
             }
@@ -58,11 +50,7 @@ class Main : CoroutineVerticle() {
             ReleaseStage.valueOf(
                 stage =
                 try {
-                    val urlClassLoader = ClassLoader.getSystemClassLoader()
-                    val manifestUrl = urlClassLoader.getResourceAsStream("META-INF/MANIFEST.MF")
-                    val manifest = Manifest(manifestUrl)
-
-                    manifest.mainAttributes.getValue("BUILD_TYPE").toString()
+                    Manifests.read("BUILD_TYPE").toString()
                 } catch (e: Exception) {
                     System.getenv("ParsekBuildType").toString()
                 }
