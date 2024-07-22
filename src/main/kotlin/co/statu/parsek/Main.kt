@@ -71,7 +71,9 @@ class Main : CoroutineVerticle() {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            vertx.deployVerticle(Main())
+            vertx.deployVerticle(Main()).onFailure {
+                it.printStackTrace()
+            }
         }
 
         enum class EnvironmentType {
