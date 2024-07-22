@@ -119,8 +119,8 @@ tasks {
             attributes(attrMap)
         }
 
-        if (project.hasProperty("timeStamp")) {
-            archiveFileName.set("${rootProject.name}-${timeStamp}.jar")
+        if (version != "Unspecified") {
+            archiveFileName.set("${rootProject.name}-${version}.jar")
         } else {
             archiveFileName.set("${rootProject.name}.jar")
         }
