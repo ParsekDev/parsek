@@ -10,4 +10,6 @@ abstract class PluginConfigMigration {
     fun isMigratable(version: Int) = version == FROM_VERSION
 
     abstract fun migrate(config: JsonObject)
+
+    open fun migrateFully(config: JsonObject) {}
 }
