@@ -120,7 +120,7 @@ tasks {
         }
 
         if (version != "Unspecified") {
-            archiveFileName.set("${rootProject.name}-${version}.jar")
+            archiveFileName.set("${rootProject.name}-v${version}.jar")
         } else {
             archiveFileName.set("${rootProject.name}.jar")
         }
