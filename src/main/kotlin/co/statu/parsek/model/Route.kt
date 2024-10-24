@@ -2,6 +2,7 @@ package co.statu.parsek.model
 
 import io.vertx.core.Handler
 import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.validation.ValidationHandler
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder
 import io.vertx.json.schema.SchemaParser
@@ -12,6 +13,8 @@ abstract class Route {
     abstract val paths: List<Path>
 
     abstract fun getHandler(): Handler<RoutingContext>
+
+    open fun bodyHandler(): Handler<RoutingContext>? = BodyHandler.create()
 
     open fun getValidationHandler(schemaParser: SchemaParser): ValidationHandler? =
         ValidationHandlerBuilder.create(schemaParser).build()

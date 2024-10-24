@@ -11,7 +11,6 @@ import co.statu.parsek.model.Route
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.LocalSessionStore
@@ -94,11 +93,6 @@ class RouterProvider private constructor(
                     .allowedHeaders(allowedHeaders)
                     .allowedMethods(allowedMethods)
             )
-            .handler(
-                BodyHandler.create()
-                    .setDeleteUploadedFilesOnEnd(true)
-                    .setUploadsDirectory(configManager.getConfig().getString("file-uploads-folder") + "/temp")
-            )
 
         routeList.forEach { route ->
             route.paths.forEach { path ->
@@ -121,6 +115,12 @@ class RouterProvider private constructor(
 
                 routedRoute
                     .order(route.order)
+
+                val bodyHandler = route.bodyHandler()
+
+                if (bodyHandler != null) {
+                    routedRoute.handler(bodyHandler)
+                }
 
                 val validationHandler = route.getValidationHandler(schemaParser)
 
