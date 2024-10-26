@@ -36,6 +36,8 @@ abstract class Api : Route() {
 
             try {
                 getFailureHandler(context)
+            } catch (e: Error) {
+                failure = e
             } catch (e: Exception) {
                 failure = e
             }
