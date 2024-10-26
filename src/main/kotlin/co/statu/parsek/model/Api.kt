@@ -32,9 +32,13 @@ abstract class Api : Route() {
 
     override fun getFailureHandler() = Handler<RoutingContext> { context ->
         CoroutineScope(context.vertx().dispatcher()).launch {
-            getFailureHandler(context)
+            var failure = context.failure()
 
-            val failure = context.failure()
+            try {
+                getFailureHandler(context)
+            } catch (e: Exception) {
+                failure = e
+            }
 
             if (
                 failure is BadRequestException ||
