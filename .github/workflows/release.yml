@@ -44,7 +44,6 @@ jobs:
           
           # Export version to GITHUB_OUTPUT if needed
           echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
 
