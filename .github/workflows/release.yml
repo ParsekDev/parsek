@@ -87,6 +87,9 @@ jobs:
           -PbuildType=${{ steps.extract_branch.outputs.branch == 'main' && 'release' || steps.extract_branch.outputs.branch }}
           -Pversion=${{ needs.get-next-version.outputs.new_tag_version }}
           -PtimeStamp=${{ steps.time.outputs.time }}
+        env:
+          USERNAME_GITHUB: ${{ secrets.USERNAME_GITHUB }}
+          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
