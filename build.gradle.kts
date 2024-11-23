@@ -172,12 +172,6 @@ publishing {
                 classifier = "changelog"
                 extension = "md"
             }
-
-            pom {
-                withXml {
-                    asNode().appendNode("description", file("CHANGELOG.md").readText())
-                }
-            }
         }
     }
 }
