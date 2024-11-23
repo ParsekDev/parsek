@@ -88,6 +88,10 @@ jobs:
         with:
           node-version: "lts/*"
 
+      - name: Install Semantic Release & Plugins
+        run: |
+          npm install --no-save semantic-release @semantic-release/changelog
+
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
