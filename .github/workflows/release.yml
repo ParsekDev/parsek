@@ -80,12 +80,13 @@ jobs:
 
       - name: Build with Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          arguments: |
-            ${{ steps.extract_branch.outputs.branch == 'main' && 'build' || 'buildDev' }} publish
-            -PbuildType=${{ steps.extract_branch.outputs.branch == 'main' && 'release' || steps.extract_branch.outputs.branch }}
-            -Pversion=${{ needs.get-next-version.outputs.new_tag_version }}
-            -PtimeStamp=${{ steps.time.outputs.time }}
+
+      - name: Build & Publish
+        run: |
+          ./gradlew ${{ steps.extract_branch.outputs.branch == 'main' && 'build' || 'buildDev' }} publish
+          -PbuildType=${{ steps.extract_branch.outputs.branch == 'main' && 'release' || steps.extract_branch.outputs.branch }}
+          -Pversion=${{ needs.get-next-version.outputs.new_tag_version }}
+          -PtimeStamp=${{ steps.time.outputs.time }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
