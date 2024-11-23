@@ -33,7 +33,7 @@ jobs:
         run: |
           npm install --no-save semantic-release @semantic-release/changelog
 
-      - name: Dry run to get next release version and changelog
+      - name: Dry run to get next release version
         id: get-next-version
         run: |
           # Get the full output of semantic-release dry-run
@@ -42,27 +42,11 @@ jobs:
           # Extract the next release version
           NEXT_TAG_VERSION=$(echo "$SEMANTIC_OUTPUT" | grep 'next release version is ' | awk -F"next release version is " '{print $2}')
           
-          # Extract the changelog
-          CHANGELOG=$(echo "$SEMANTIC_OUTPUT" | awk '/Changelog/{flag=1; next} /Your dry run succeeded/{flag=0} flag')
-          
-          # Output version and changelog to CHANGELOG.md
-          echo "## ${NEXT_TAG_VERSION}" > CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo "$CHANGELOG" >> CHANGELOG.md
-          
-          # Export version and changelog to GITHUB_OUTPUT if needed
+          # Export version to GITHUB_OUTPUT if needed
           echo "new_tag_version=${NEXT_TAG_VERSION}" >> $GITHUB_OUTPUT
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-
-      - name: Upload Changelog
-        uses: actions/upload-artifact@v4
-        with:
-          name: changelog
-          path: CHANGELOG.md
 
       - name: Echo new_tag_version
         run: |
@@ -103,11 +87,6 @@ jobs:
 
       - name: Build with Gradle
         uses: gradle/actions/setup-gradle@v4
-
-      - name: Download Changelog
-        uses: actions/download-artifact@v4
-        with:
-          name: changelog
 
       - name: Build & Publish
         run: |

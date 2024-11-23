@@ -167,11 +167,6 @@ publishing {
                 component(this@create)
 
             }
-
-            artifact(file("CHANGELOG.md")) {
-                classifier = "changelog"
-                extension = "md"
-            }
         }
     }
 }
