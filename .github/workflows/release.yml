@@ -73,16 +73,16 @@ jobs:
           timeZone: 8
           format: 'YYYYMMDDHHmmss'
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 8
 
       - name: Build with Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           arguments: |
-            ${{ steps.extract_branch.outputs.branch == 'main' && 'build' || 'buildDev' }}
+            ${{ steps.extract_branch.outputs.branch == 'main' && 'build' || 'buildDev' }} publish
             -PbuildType=${{ steps.extract_branch.outputs.branch == 'main' && 'release' || steps.extract_branch.outputs.branch }}
             -Pversion=${{ needs.get-next-version.outputs.new_tag_version }}
             -PtimeStamp=${{ steps.time.outputs.time }}

@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
+
 val vertxVersion: String by project
 val gsonVersion: String by project
 val springContextVersion: String by project
@@ -15,8 +17,8 @@ plugins {
     `maven-publish`
 }
 
-group = "co.statu"
-version = project.findProperty("version") ?: "0.0.1"
+group = "dev.parsek"
+version = project.findProperty("version") ?: "local-build"
 
 val buildType = project.findProperty("buildType") as String? ?: "alpha"
 val timeStamp: String by project
@@ -150,7 +152,7 @@ publishing {
     repositories {
         maven {
             name = "Parsek"
-            url = uri("https://maven.pkg.github.com/StatuParsek/Parsek")
+            url = uri("https://maven.pkg.github.com/ParsekDev/parsek")
             credentials {
                 username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME_GITHUB")
                 password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN_GITHUB")
@@ -160,9 +162,15 @@ publishing {
 
     publications {
         create<MavenPublication>("shadow") {
-            project.extensions.configure<com.github.jengelman.gradle.plugins.shadow.ShadowExtension> {
+            project.extensions.configure<ShadowExtension> {
                 artifactId = "core"
                 component(this@create)
+
+            }
+
+            artifact(file("CHANGELOG.md")) {
+                classifier = "changelog"
+                extension = "md"
             }
         }
     }
