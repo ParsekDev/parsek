@@ -25,6 +25,10 @@
           {
             "path": "LICENSE",
             "label": false
+          },
+          {
+            "path": "CHANGELOG.md",
+            "label": false
           }
         ]
       }
