@@ -1,5 +1,7 @@
 package co.statu.parsek
 
+import co.statu.parsek.api.ParsekPlugin
+import kotlinx.coroutines.runBlocking
 import org.pf4j.*
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import java.nio.file.Path
@@ -22,10 +24,8 @@ class PluginManager(importPaths: List<Path>) : DefaultPluginManager(importPaths)
     }
 
     override fun createPluginDescriptorFinder(): CompoundPluginDescriptorFinder {
-        return CompoundPluginDescriptorFinder() // Demo is using the Manifest file
-            // PropertiesPluginDescriptorFinder is commented out just to avoid error log
-            //.add(PropertiesPluginDescriptorFinder())
-            .add(ManifestPluginDescriptorFinder())
+        return CompoundPluginDescriptorFinder()
+            .add(ParsekManifestPluginDescriptorFinder())
     }
 
     override fun createPluginFactory(): PluginFactory {
@@ -35,5 +35,57 @@ class PluginManager(importPaths: List<Path>) : DefaultPluginManager(importPaths)
     override fun createPluginLoader(): PluginLoader {
         return CompoundPluginLoader()
             .add(ParsekPluginLoader(this)) { this.isNotDevelopment }
+    }
+
+    fun getActivePlugins(): List<ParsekPlugin> = getPlugins(PluginState.STARTED).mapNotNull { plugin ->
+        runCatching {
+            val pluginWrapper = plugin as ParsekPluginWrapper
+            pluginWrapper.plugin as ParsekPlugin
+        }.getOrNull()
+    }
+
+    fun getPluginWrappers() = plugins.values.map { it as ParsekPluginWrapper }
+
+    override fun createPluginWrapper(
+        pluginDescriptor: PluginDescriptor,
+        pluginPath: Path,
+        pluginClassLoader: ClassLoader
+    ): PluginWrapper {
+        val pluginWrapper = ParsekPluginWrapper(this, pluginDescriptor, pluginPath, pluginClassLoader)
+
+        pluginWrapper.setPluginFactory(getPluginFactory())
+
+        return pluginWrapper
+    }
+
+
+    override fun enablePlugin(pluginId: String): Boolean {
+        val result = super.enablePlugin(pluginId)
+
+        val plugin = getPlugin(pluginId)?.plugin as ParsekPlugin?
+
+        if (result) {
+            plugin?.let {
+                runBlocking {
+                    it.load()
+                    it.onEnable()
+                    it.onStart()
+                }
+            }
+        }
+
+        return result
+    }
+
+    override fun disablePlugin(pluginId: String): Boolean {
+        val plugin = getPlugin(pluginId).plugin as ParsekPlugin
+
+        runBlocking {
+            plugin.onStop()
+            plugin.onDisable()
+            plugin.unload()
+        }
+
+        return super.disablePlugin(pluginId)
     }
 }

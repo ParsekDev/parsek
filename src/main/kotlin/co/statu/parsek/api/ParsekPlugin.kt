@@ -2,10 +2,10 @@ package co.statu.parsek.api
 
 import co.statu.parsek.Main
 import co.statu.parsek.PluginEventManager
+import co.statu.parsek.PluginManager
 import co.statu.parsek.ReleaseStage
 import co.statu.parsek.api.event.PluginEventListener
 import io.vertx.core.Vertx
-import kotlinx.coroutines.runBlocking
 import org.pf4j.Plugin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -65,32 +65,55 @@ abstract class ParsekPlugin : Plugin() {
         pluginEventManager.unRegister(this, eventListener)
     }
 
-    @Deprecated("Use onEnable method.")
+    @Deprecated("Use onStart method.")
     override fun start() {
-        runBlocking {
-            onEnable()
-        }
     }
 
-    @Deprecated("Use onDisable method.")
+    @Deprecated("Use onStop method.")
     override fun stop() {
-        pluginBeanContext.close()
+    }
 
+    internal fun load() {
+        val pluginBeanContext by lazy {
+            val pluginBeanContext = AnnotationConfigApplicationContext()
+
+            pluginBeanContext.setAllowBeanDefinitionOverriding(true)
+
+            pluginBeanContext.parent = PluginManager.pluginGlobalBeanContext
+            pluginBeanContext.classLoader = this.javaClass.classLoader
+            pluginBeanContext.scan(this.javaClass.`package`.name)
+
+            pluginBeanContext.beanFactory.registerSingleton(this.logger.javaClass.name, this.logger)
+            pluginBeanContext.beanFactory.registerSingleton(pluginEventManager.javaClass.name, pluginEventManager)
+            pluginBeanContext.beanFactory.registerSingleton(this.javaClass.name, this)
+
+            pluginBeanContext.refresh()
+
+            pluginBeanContext
+        }
+
+        this.pluginBeanContext = pluginBeanContext
+
+        pluginEventManager.initializePlugin(this, pluginBeanContext)
+    }
+
+    internal fun unload() {
         val copyOfRegisteredBeans = registeredBeans.toList()
 
         copyOfRegisteredBeans.forEach {
-            unRegisterGlobal(it)
+            try {
+                unRegisterGlobal(it)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         pluginEventManager.unregisterPlugin(this)
-
-        runBlocking {
-            onDisable()
-        }
     }
 
-    open suspend fun onLoad() {}
-
+    open suspend fun onCreate() {}
     open suspend fun onEnable() {}
     open suspend fun onDisable() {}
+    open suspend fun onStart() {}
+    open suspend fun onStop() {}
 }
