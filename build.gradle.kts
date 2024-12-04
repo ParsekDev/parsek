@@ -1,4 +1,7 @@
+
 import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import java.util.*
 
 val vertxVersion: String by project
@@ -175,14 +178,22 @@ publishing {
 }
 
 deployer {
-    centralPortalSpec {
-        // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
-        auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
-        auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
+    if (System.getenv("OSSRH_USERNAME") != null && System.getenv("OSSRH_PASSWORD") != null) {
+        centralPortalSpec {
+            // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
+            auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
+            auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
 
-        // Signing is required
-        signing.key.set(secret(String(Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", "")))))
-        signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
+            // Signing is required
+            signing.key.set(
+                secret(
+                    String(
+                        Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", ""))
+                    )
+                )
+            )
+            signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
+        }
     }
 }
 
@@ -200,5 +211,13 @@ signing {
         sign(publishing.publications)
     } else {
         logger.warn("Signing is not configured. Skipping signing tasks.")
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_1_8)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_8)
+        languageVersion.set(KotlinVersion.KOTLIN_1_8)
     }
 }

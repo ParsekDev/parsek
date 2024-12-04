@@ -82,7 +82,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 21
 
       - name: Build with Gradle
         uses: gradle/actions/setup-gradle@v4
