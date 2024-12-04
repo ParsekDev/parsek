@@ -187,9 +187,13 @@ java {
 }
 
 signing {
-    useInMemoryPgpKeys(
-        System.getenv("GPG_PRIVATE_KEY"),
-        System.getenv("GPG_PASSPHRASE")
-    )
-    sign(publishing.publications["shadow"])
+    val signingKey = System.getenv("GPG_PRIVATE_KEY")
+    val signingPassphrase = System.getenv("GPG_PASSPHRASE")
+
+    if (!signingKey.isNullOrEmpty() && !signingPassphrase.isNullOrEmpty()) {
+        useInMemoryPgpKeys(signingKey, signingPassphrase)
+        sign(publishing.publications)
+    } else {
+        logger.warn("Signing is not configured. Skipping signing tasks.")
+    }
 }
