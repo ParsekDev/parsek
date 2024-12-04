@@ -15,6 +15,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     application
     `maven-publish`
+    signing
 }
 
 group = "dev.parsek"
@@ -158,6 +159,15 @@ publishing {
                 password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN_GITHUB")
             }
         }
+
+        maven {
+            name = "sonatype"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = System.getenv("OSSRH_USERNAME")
+                password = System.getenv("OSSRH_PASSWORD")
+            }
+        }
     }
 
     publications {
@@ -169,4 +179,17 @@ publishing {
             }
         }
     }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+signing {
+    useInMemoryPgpKeys(
+        System.getenv("GPG_PRIVATE_KEY"),
+        System.getenv("GPG_PASSPHRASE")
+    )
+    sign(publishing.publications)
 }
