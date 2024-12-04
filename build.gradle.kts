@@ -17,6 +17,7 @@ plugins {
     application
     `maven-publish`
     signing
+    id("io.deepmedia.tools.deployer") version "0.15.0"
 }
 
 group = "dev.parsek"
@@ -161,17 +162,6 @@ publishing {
             }
         }
 
-        maven {
-            name = "sonatype"
-            val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
-
-            credentials {
-                username = System.getenv("OSSRH_USERNAME")
-                password = System.getenv("OSSRH_PASSWORD")
-            }
-        }
     }
 
     publications {
@@ -179,9 +169,20 @@ publishing {
             project.extensions.configure<ShadowExtension> {
                 artifactId = "core"
                 component(this@create)
-
             }
         }
+    }
+}
+
+deployer {
+    centralPortalSpec {
+        // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
+        auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
+        auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
+
+        // Signing is required
+        signing.key.set(secret(String(Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", "")))))
+        signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
     }
 }
 
