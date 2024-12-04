@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
+import java.util.*
 
 val vertxVersion: String by project
 val gsonVersion: String by project
@@ -187,7 +188,7 @@ java {
 }
 
 signing {
-    val signingKey = System.getenv("GPG_PRIVATE_KEY")
+    val signingKey = System.getenv("GPG_PRIVATE_KEY")?.let { String(Base64.getDecoder().decode(it)) }
     val signingPassphrase = System.getenv("GPG_PASSPHRASE")
 
     if (!signingKey.isNullOrEmpty() && !signingPassphrase.isNullOrEmpty()) {
