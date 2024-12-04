@@ -188,7 +188,7 @@ java {
 }
 
 signing {
-    val signingKey = System.getenv("GPG_PRIVATE_KEY")?.let { String(Base64.getDecoder().decode(it)) }
+    val signingKey = System.getenv("GPG_PRIVATE_KEY")?.let { String(Base64.getDecoder().decode(it.replace("\n", ""))) }
     val signingPassphrase = System.getenv("GPG_PASSPHRASE")
 
     if (!signingKey.isNullOrEmpty() && !signingPassphrase.isNullOrEmpty()) {
