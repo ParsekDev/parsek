@@ -18,7 +18,7 @@ plugins {
     application
     `maven-publish`
     signing
-    id("io.deepmedia.tools.deployer") version "0.15.0"
+    id("com.tddworks.central-portal-publisher") version "0.0.5"
 }
 
 group = "dev.parsek"
@@ -175,28 +175,39 @@ publishing {
     }
 }
 
-deployer {
-    centralPortalSpec {
-        // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
-        auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
-        auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
+sonatypePortalPublisher {
+    authentication {
+        username = System.getenv("OSSRH_USERNAME")
+        password = System.getenv("OSSRH_PASSWORD")
+    }
 
-        // Signing is required
-        signing.key.set(
-            secret(
-                String(
-                    Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", ""))
-                )
-            )
-        )
-        signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
+    settings {
+        autoPublish = false
     }
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
+//deployer {
+//    centralPortalSpec {
+//        // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
+//        auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
+//        auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
+//
+//        // Signing is required
+//        signing.key.set(
+//            secret(
+//                String(
+//                    Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", ""))
+//                )
+//            )
+//        )
+//        signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
+//    }
+//}
+
+//java {
+//    withJavadocJar()
+//    withSourcesJar()
+//}
 
 signing {
     val signingKey = System.getenv("GPG_PRIVATE_KEY")?.let { String(Base64.getDecoder().decode(it.replace("\n", ""))) }
