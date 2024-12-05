@@ -176,22 +176,20 @@ publishing {
 }
 
 deployer {
-    if (System.getenv("OSSRH_USERNAME") != null && System.getenv("OSSRH_PASSWORD") != null) {
-        centralPortalSpec {
-            // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
-            auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
-            auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
+    centralPortalSpec {
+        // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
+        auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
+        auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
 
-            // Signing is required
-            signing.key.set(
-                secret(
-                    String(
-                        Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", ""))
-                    )
+        // Signing is required
+        signing.key.set(
+            secret(
+                String(
+                    Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", ""))
                 )
             )
-            signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
-        }
+        )
+        signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
     }
 }
 
