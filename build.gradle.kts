@@ -1,6 +1,5 @@
 
 import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.*
 
 val vertxVersion: String by project
@@ -19,7 +18,7 @@ plugins {
     application
     `maven-publish`
     signing
-    id("org.jreleaser") version "1.15.0"
+    id("io.deepmedia.tools.deployer") version "0.15.0"
 }
 
 group = "dev.parsek"
@@ -176,39 +175,25 @@ publishing {
     }
 }
 
-jreleaser {
-    deploy {
-        maven {
-            mavenCentral {
-                create("app") {
-                    setActive("ALWAYS")
-                    url.set("https://central.sonatype.com/api/v1/publisher")
-                    stagingRepository("target/staging-deploy")
-                }
-            }
+deployer {
+    if (System.getenv("OSSRH_USERNAME") != null && System.getenv("OSSRH_PASSWORD") != null) {
+        centralPortalSpec {
+            // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
+            auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
+            auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
+
+            // Signing is required
+            signing.key.set(
+                secret(
+                    String(
+                        Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", ""))
+                    )
+                )
+            )
+            signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
         }
     }
 }
-
-//deployer {
-//    if (System.getenv("OSSRH_USERNAME") != null && System.getenv("OSSRH_PASSWORD") != null) {
-//        centralPortalSpec {
-//            // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
-//            auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
-//            auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
-//
-//            // Signing is required
-//            signing.key.set(
-//                secret(
-//                    String(
-//                        Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", ""))
-//                    )
-//                )
-//            )
-//            signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
-//        }
-//    }
-//}
 
 java {
     withJavadocJar()
@@ -227,8 +212,24 @@ signing {
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_1_8)
+java {
+    // Java 11 ile derleme yap
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
+}
+
+kotlin {
+    jvmToolchain(21) // Kotlin'in de Java 11 araç zincirini kullanmasını sağla
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "1.8" // JVM 8 için hedef
+    }
+}
+
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
 }
