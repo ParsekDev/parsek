@@ -175,12 +175,6 @@ publishing {
     }
 }
 
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
 signing {
     val signingKey = System.getenv("GPG_PRIVATE_KEY")?.let { String(Base64.getDecoder().decode(it.replace("\n", ""))) }
     val signingPassphrase = System.getenv("GPG_PASSPHRASE")
@@ -194,6 +188,9 @@ signing {
 }
 
 java {
+    withJavadocJar()
+    withSourcesJar()
+
     // Use Java 21 for compilation
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
