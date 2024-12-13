@@ -5,6 +5,7 @@
 <p align="center">
   <img src="https://img.shields.io/maintenance/yes/2025?style=for-the-badge" alt="Maintained">
   <a href="https://github.com/ParsekDev/parsek/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ParsekDev/parsek?style=for-the-badge" alt="License"></a>
+  <a href="https://github.com/ParsekDev/parsek/blob/main/LICENSE"><img src="https://img.shields.io/github/v/release/ParsekDev/parsek?include_prereleases&style=for-the-badge" alt="License"></a>
 </p>
 
 ---
