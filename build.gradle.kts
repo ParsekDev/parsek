@@ -1,5 +1,6 @@
 
 import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.*
 
 val vertxVersion: String by project
@@ -18,7 +19,6 @@ plugins {
     application
     `maven-publish`
     signing
-    id("com.tddworks.central-portal-publisher") version "0.0.5"
 }
 
 group = "dev.parsek"
@@ -175,39 +175,11 @@ publishing {
     }
 }
 
-sonatypePortalPublisher {
-    authentication {
-        username = System.getenv("OSSRH_USERNAME")
-        password = System.getenv("OSSRH_PASSWORD")
-    }
 
-    settings {
-        autoPublish = false
-    }
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
-
-//deployer {
-//    centralPortalSpec {
-//        // Take these credentials from the Generate User Token page at https://central.sonatype.com/account
-//        auth.user.set(secret(System.getenv("OSSRH_USERNAME")))
-//        auth.password.set(secret(System.getenv("OSSRH_PASSWORD")))
-//
-//        // Signing is required
-//        signing.key.set(
-//            secret(
-//                String(
-//                    Base64.getDecoder().decode(System.getenv("GPG_PRIVATE_KEY").replace("\n", ""))
-//                )
-//            )
-//        )
-//        signing.password.set(secret(System.getenv("GPG_PASSPHRASE")))
-//    }
-//}
-
-//java {
-//    withJavadocJar()
-//    withSourcesJar()
-//}
 
 signing {
     val signingKey = System.getenv("GPG_PRIVATE_KEY")?.let { String(Base64.getDecoder().decode(it.replace("\n", ""))) }
@@ -222,19 +194,19 @@ signing {
 }
 
 java {
-    // Java 11 ile derleme yap
+    // Use Java 21 for compilation
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
 kotlin {
-    jvmToolchain(21) // Kotlin'in de Java 11 araç zincirini kullanmasını sağla
+    jvmToolchain(21) // Ensure Kotlin uses the Java 21 toolchain
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "1.8" // JVM 8 için hedef
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_1_8)
     }
 }
 
