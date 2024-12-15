@@ -1,6 +1,8 @@
-<p align="center"><img width="100" src="https://i.ibb.co/BnshRxz/149114972.png" alt="Pano logo"></p>
 <p align="center">
-  Open-source modular back-end written in Kotlin, backed by @StatuAgency
+  <img src="https://i.ibb.co/vmKMRSP/Frame-4.png" alt="Parsek Logo" border="0">
+</p>
+<p align="center">
+  Open-source modular back-end written in Kotlin, backed by <a href="https://statu.net">Statu Agency</a>
 </p>
 <p align="center">
   <img src="https://img.shields.io/maintenance/yes/2025?style=for-the-badge" alt="Maintained">
