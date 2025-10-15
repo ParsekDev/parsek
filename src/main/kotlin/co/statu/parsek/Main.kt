@@ -142,6 +142,10 @@ class Main : CoroutineVerticle() {
             parsekEventHandlers.forEach { eventHandler ->
                 eventHandler.onConfigManagerReady(configManager)
             }
+
+            parsekEventHandlers.forEach { eventHandler ->
+                eventHandler.onConfigManagerDone(configManager)
+            }
         } catch (e: Exception) {
             println(e.stackTraceToString())
 
