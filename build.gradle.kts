@@ -257,10 +257,15 @@ jreleaser {
         inceptionYear.set("2024")
     }
     
-    // Disable release (semantic-release handles GitHub releases)
+    // Configure GitHub release provider (required by JReleaser even for deploy-only)
     release {
         github {
-            enabled.set(false)
+            overwrite.set(false)
+            skipTag.set(true)
+            skipRelease.set(true)
+            changelog {
+                enabled.set(false)
+            }
         }
     }
     
