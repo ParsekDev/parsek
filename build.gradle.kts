@@ -1,7 +1,4 @@
-
-import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.*
 
 val vertxVersion: String by project
 val gsonVersion: String by project
