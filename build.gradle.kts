@@ -161,7 +161,12 @@ application {
 tasks.named<Jar>("jar") {
     // Keep jar enabled for Maven publishing
     enabled = true
-    // Don't add custom naming here - let it use standard naming for publishing
+    // Add custom naming: v before version and -api before .jar
+    if (version != "unspecified") {
+        archiveFileName.set("${rootProject.name}-v${version}-api.jar")
+    } else {
+        archiveFileName.set("${rootProject.name}-api.jar")
+    }
 }
 
 java {
