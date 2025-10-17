@@ -169,6 +169,17 @@ tasks.named<Jar>("jar") {
     }
 }
 
+java {
+    // Use Java 21 for compilation
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+    // Automatically create sources and javadoc JARs
+    withSourcesJar()
+    withJavadocJar()
+}
+
+// Configure sources and javadoc jars after they are created
 tasks.named<Jar>("sourcesJar") {
     // Add custom naming: v before version and -api before .jar
     if (version != "unspecified") {
@@ -185,16 +196,6 @@ tasks.named<Jar>("javadocJar") {
     } else {
         archiveFileName.set("${rootProject.name}-api-javadoc.jar")
     }
-}
-
-java {
-    // Use Java 21 for compilation
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-    // Automatically create sources and javadoc JARs
-    withSourcesJar()
-    withJavadocJar()
 }
 
 kotlin {
