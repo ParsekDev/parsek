@@ -160,6 +160,9 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+    // Automatically create sources and javadoc JARs
+    withSourcesJar()
+    withJavadocJar()
 }
 
 kotlin {
@@ -177,19 +180,6 @@ tasks.withType<JavaCompile> {
     targetCompatibility = "1.8"
 }
 
-// Configure Kotlin sources jar
-tasks.register<Jar>("kotlinSourcesJar") {
-    archiveClassifier.set("sources")
-    from(sourceSets["main"].allSource)
-}
-
-// Configure Javadoc jar
-tasks.register<Jar>("javadocJar") {
-    archiveClassifier.set("javadoc")
-    // For Kotlin projects, we can use an empty javadoc jar or generate KDoc
-    // Empty javadoc is acceptable for Maven Central
-}
-
 // Publishing configuration
 publishing {
     publications {
@@ -199,10 +189,7 @@ publishing {
             version = project.version.toString()
             
             from(components["java"])
-            
-            // Include sources and javadoc
-            artifact(tasks.named("kotlinSourcesJar"))
-            artifact(tasks.named("javadocJar"))
+            // Sources and Javadoc JARs are automatically included via withSourcesJar() and withJavadocJar()
             
             pom {
                 name.set("Parsek")
