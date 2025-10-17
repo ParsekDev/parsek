@@ -29,7 +29,8 @@ version = project.findProperty("version") ?: defaultVersion
 
 val buildType = project.findProperty("buildType") as String? ?: "alpha"
 val timeStamp: String by project
-val buildDir by extra { file("${rootProject.layout.buildDirectory.get()}/libs") }
+// Custom directory for distribution JARs (separate from build/libs which is used for publishing)
+val distDir by extra { file("${rootProject.layout.buildDirectory.get()}/dist") }
 val defaultJarEnabled: String? by project
 
 repositories {
@@ -96,18 +97,22 @@ tasks {
         dependsOn(shadowJar)
 
         doLast {
-            if (shadowJar.get().archiveFile.get().asFile.parentFile.absolutePath != buildDir.absolutePath) {
-                copy {
-                    from(shadowJar.get().archiveFile.get().asFile.absolutePath)
-                    into(buildDir)
-                }
+            // Create distribution directory
+            distDir.mkdirs()
+            
+            // Copy only shadow JAR to distribution directory
+            copy {
+                from(shadowJar.get().archiveFile.get().asFile.absolutePath)
+                into(distDir)
             }
+            
+            println("Distribution JAR created at: ${distDir}/${shadowJar.get().archiveFileName.get()}")
         }
     }
 
     build {
         dependsOn("copyJar")
-        // Ensure standard jar is built for Maven publishing
+        // Ensure standard jar is built for Maven publishing (stays in build/libs)
         dependsOn(jar)
     }
 
@@ -199,9 +204,9 @@ publishing {
             
             pom {
                 name.set("Parsek")
-                description.set("A lightweight, modular framework for building RESTful APIs with Kotlin and Vert.x")
-                url.set("https://github.com/Statucorp/parsek-core")
-                inceptionYear.set("2024")
+                description.set("Open-source modular backend in Kotlin")
+                url.set("https://github.com/ParsekDev/parsek")
+                inceptionYear.set("2025")
                 
                 licenses {
                     license {
@@ -212,16 +217,16 @@ publishing {
                 
                 developers {
                     developer {
-                        id.set(" StatuCorp")
-                        name.set("Statu Corporation")
+                        id.set("Statu")
+                        name.set("Statu")
                         email.set("info@statu.co")
                     }
                 }
                 
                 scm {
-                    connection.set("scm:git:git://github.com/Statucorp/parsek-core.git")
-                    developerConnection.set("scm:git:ssh://github.com/Statucorp/parsek-core.git")
-                    url.set("https://github.com/Statucorp/parsek-core")
+                    connection.set("scm:git:git://github.com/ParsekDev/parsek.git")
+                    developerConnection.set("scm:git:ssh://github.com/ParsekDev/parsek.git")
+                    url.set("https://github.com/ParsekDev/parsek")
                 }
             }
         }
@@ -248,13 +253,13 @@ signing {
 // JReleaser configuration
 jreleaser {
     project {
-        description.set("A lightweight, modular framework for building RESTful APIs with Kotlin and Vert.x")
-        authors.add("StatuCorp")
+        description.set("Open-source modular backend in Kotlin")
+        authors.add("Statu")
         license.set("MIT")
         links {
-            homepage.set("https://github.com/Statucorp/parsek-core")
+            homepage.set("https://github.com/ParsekDev/parsek")
         }
-        inceptionYear.set("2024")
+        inceptionYear.set("2025")
     }
     
     // Configure GitHub release provider (required by JReleaser even for deploy-only)
