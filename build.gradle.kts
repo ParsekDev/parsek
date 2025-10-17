@@ -18,9 +18,10 @@ plugins {
     kotlin("jvm") version "2.0.21"
     kotlin("kapt") version "2.0.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    application
+    id("org.jreleaser") version "1.14.0"
     `maven-publish`
     signing
+    application
 }
 
 group = "dev.parsek"
@@ -154,45 +155,7 @@ tasks.named("jar").configure {
     enabled = defaultJarEnabled.toBoolean()
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "Parsek"
-            url = uri("https://maven.pkg.github.com/ParsekDev/parsek")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME_GITHUB")
-                password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN_GITHUB")
-            }
-        }
-
-    }
-
-    publications {
-        create<MavenPublication>("shadow") {
-            project.extensions.configure<ShadowExtension> {
-                artifactId = "core"
-                component(this@create)
-            }
-        }
-    }
-}
-
-signing {
-    val signingKey = System.getenv("GPG_PRIVATE_KEY")?.let { String(Base64.getDecoder().decode(it.replace("\n", ""))) }
-    val signingPassphrase = System.getenv("GPG_PASSPHRASE")
-
-    if (!signingKey.isNullOrEmpty() && !signingPassphrase.isNullOrEmpty()) {
-        useInMemoryPgpKeys(signingKey, signingPassphrase)
-        sign(publishing.publications)
-    } else {
-        logger.warn("Signing is not configured. Skipping signing tasks.")
-    }
-}
-
 java {
-    withJavadocJar()
-    withSourcesJar()
-
     // Use Java 21 for compilation
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
@@ -212,4 +175,116 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 tasks.withType<JavaCompile> {
     sourceCompatibility = "1.8"
     targetCompatibility = "1.8"
+}
+
+// Publishing configuration
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "dev.parsek"
+            artifactId = "core"
+            version = project.version.toString()
+            
+            from(components["java"])
+            
+            // Include sources and javadoc
+            artifact(tasks.named("kotlinSourcesJar"))
+            artifact(tasks.named("javadocJar"))
+            
+            pom {
+                name.set("Parsek")
+                description.set("A lightweight, modular framework for building RESTful APIs with Kotlin and Vert.x")
+                url.set("https://github.com/Statucorp/parsek-core")
+                inceptionYear.set("2024")
+                
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id.set(" StatuCorp")
+                        name.set("Statu Corporation")
+                        email.set("info@statu.co")
+                    }
+                }
+                
+                scm {
+                    connection.set("scm:git:git://github.com/Statucorp/parsek-core.git")
+                    developerConnection.set("scm:git:ssh://github.com/Statucorp/parsek-core.git")
+                    url.set("https://github.com/Statucorp/parsek-core")
+                }
+            }
+        }
+    }
+    
+    repositories {
+        maven {
+            url = layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
+        }
+    }
+}
+
+// Configure Kotlin sources jar
+tasks.register<Jar>("kotlinSourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets["main"].allSource)
+}
+
+// Configure Javadoc jar
+tasks.register<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
+    // For Kotlin projects, we can use an empty javadoc jar or generate KDoc
+    // Empty javadoc is acceptable for Maven Central
+}
+
+// Signing configuration
+signing {
+    val signingKey = System.getenv("GPG_PRIVATE_KEY")
+    val signingPassword = System.getenv("GPG_PASSPHRASE")
+    
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications["maven"])
+    }
+}
+
+// JReleaser configuration
+jreleaser {
+    project {
+        description.set("A lightweight, modular framework for building RESTful APIs with Kotlin and Vert.x")
+        authors.add("StatuCorp")
+        license.set("MIT")
+        links {
+            homepage.set("https://github.com/Statucorp/parsek-core")
+        }
+        inceptionYear.set("2024")
+    }
+    
+    // Disable release (semantic-release handles GitHub releases)
+    release {
+        github {
+            enabled.set(false)
+        }
+    }
+    
+    signing {
+        active.set(org.jreleaser.model.Active.ALWAYS)
+        armored.set(true)
+    }
+    
+    deploy {
+        maven {
+            mavenCentral {
+                create("sonatype") {
+                    active.set(org.jreleaser.model.Active.ALWAYS)
+                    url.set("https://central.sonatype.com/api/v1/publisher")
+                    stagingRepository("build/staging-deploy")
+                }
+            }
+        }
+    }
 }

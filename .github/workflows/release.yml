@@ -84,28 +84,23 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Build with Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Import GPG key
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Build with Gradle
         run: |
-          echo "$GPG_PRIVATE_KEY" | base64 --decode | gpg --batch --import
-          echo "$GPG_PASSPHRASE" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --import-ownertrust
-
-      - name: Build & Publish
-        run: |
-          ./gradlew ${{ steps.extract_branch.outputs.branch == 'main' && 'build' || 'buildDev' }} publish \
+          ./gradlew ${{ steps.extract_branch.outputs.branch == 'main' && 'build' || 'buildDev' }} \
           -PbuildType=${{ steps.extract_branch.outputs.branch == 'main' && 'release' || steps.extract_branch.outputs.branch }} \
           -Pversion=${{ needs.get-next-version.outputs.new_tag_version }} \
           -PtimeStamp=${{ steps.time.outputs.time }}
         env:
           USERNAME_GITHUB: ${{ secrets.USERNAME_GITHUB }}
           TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+
+      - name: Publish to Maven Central with JReleaser
+        run: |
+          ./gradlew -Pversion=${{ needs.get-next-version.outputs.new_tag_version }} publish
+        env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
@@ -118,7 +113,27 @@ jobs:
         run: |
           npm install --no-save semantic-release @semantic-release/changelog
 
-      - name: Release
+      - name: Create GitHub Release with Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
         run: npx semantic-release
+
+      - name: Deploy to Maven Central with JReleaser
+        run: |
+          ./gradlew -Pversion=${{ needs.get-next-version.outputs.new_tag_version }} jreleaserDeploy
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+          JRELEASER_MAVENCENTRAL_USERNAME: ${{ secrets.MAVENCENTRAL_USERNAME }}
+          JRELEASER_MAVENCENTRAL_TOKEN: ${{ secrets.MAVENCENTRAL_TOKEN }}
+          JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jreleaser-logs
+          path: |
+            build/jreleaser/trace.log
+            build/jreleaser/output.properties
