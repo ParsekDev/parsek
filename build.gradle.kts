@@ -107,6 +107,8 @@ tasks {
 
     build {
         dependsOn("copyJar")
+        // Ensure standard jar is built for Maven publishing
+        dependsOn(jar)
     }
 
     register("buildDev") {
@@ -151,8 +153,10 @@ application {
     mainClass.set(appMainClass)
 }
 
-tasks.named("jar").configure {
-    enabled = defaultJarEnabled.toBoolean()
+tasks.named<Jar>("jar") {
+    // Keep jar enabled for Maven publishing
+    enabled = true
+    // Don't add custom naming here - let it use standard naming for publishing
 }
 
 java {
@@ -188,8 +192,10 @@ publishing {
             artifactId = "core"
             version = project.version.toString()
             
-            from(components["java"])
-            // Sources and Javadoc JARs are automatically included via withSourcesJar() and withJavadocJar()
+            // Use the standard jar task output
+            artifact(tasks.named("jar"))
+            artifact(tasks.named("sourcesJar"))
+            artifact(tasks.named("javadocJar"))
             
             pom {
                 name.set("Parsek")
