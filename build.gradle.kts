@@ -169,6 +169,24 @@ tasks.named<Jar>("jar") {
     }
 }
 
+tasks.named<Jar>("sourcesJar") {
+    // Add custom naming: v before version and -api before .jar
+    if (version != "unspecified") {
+        archiveFileName.set("${rootProject.name}-v${version}-api-sources.jar")
+    } else {
+        archiveFileName.set("${rootProject.name}-api-sources.jar")
+    }
+}
+
+tasks.named<Jar>("javadocJar") {
+    // Add custom naming: v before version and -api before .jar
+    if (version != "unspecified") {
+        archiveFileName.set("${rootProject.name}-v${version}-api-javadoc.jar")
+    } else {
+        archiveFileName.set("${rootProject.name}-api-javadoc.jar")
+    }
+}
+
 java {
     // Use Java 21 for compilation
     toolchain {
