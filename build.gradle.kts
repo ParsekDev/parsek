@@ -177,6 +177,19 @@ tasks.withType<JavaCompile> {
     targetCompatibility = "1.8"
 }
 
+// Configure Kotlin sources jar
+tasks.register<Jar>("kotlinSourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets["main"].allSource)
+}
+
+// Configure Javadoc jar
+tasks.register<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
+    // For Kotlin projects, we can use an empty javadoc jar or generate KDoc
+    // Empty javadoc is acceptable for Maven Central
+}
+
 // Publishing configuration
 publishing {
     publications {
@@ -226,19 +239,6 @@ publishing {
             url = layout.buildDirectory.dir("staging-deploy").get().asFile.toURI()
         }
     }
-}
-
-// Configure Kotlin sources jar
-tasks.register<Jar>("kotlinSourcesJar") {
-    archiveClassifier.set("sources")
-    from(sourceSets["main"].allSource)
-}
-
-// Configure Javadoc jar
-tasks.register<Jar>("javadocJar") {
-    archiveClassifier.set("javadoc")
-    // For Kotlin projects, we can use an empty javadoc jar or generate KDoc
-    // Empty javadoc is acceptable for Maven Central
 }
 
 // Signing configuration
