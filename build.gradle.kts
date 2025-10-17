@@ -278,7 +278,6 @@ signing {
 jreleaser {
     project {
         name.set("core")
-        version.set("v${project.version}")
         description.set("Open-source modular backend in Kotlin")
         authors.add("Statu")
         license.set("MIT")
