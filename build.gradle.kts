@@ -12,8 +12,8 @@ val pluginsDir: File? by rootProject.extra
 val defaultVersion = "0.0.0-local-build"
 
 plugins {
-    kotlin("jvm") version "2.0.21"
-    kotlin("kapt") version "2.0.21"
+    kotlin("jvm") version "2.3.0"
+    kotlin("kapt") version "2.3.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("org.jreleaser") version "1.14.0"
     `maven-publish`
