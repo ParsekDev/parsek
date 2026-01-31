@@ -148,7 +148,21 @@ tasks.named<JavaExec>("run") {
     environment("EnvironmentType", "DEVELOPMENT")
     environment("ParsekVersion", if (version == "unspecified") defaultVersion else version)
     environment("ParsekBuildType", buildType)
-    pluginsDir?.let { systemProperty("pf4j.pluginsDir", it.absolutePath) }
+    
+    // Pass pf4j.pluginsDir if defined in properties, otherwise fallback to default
+    System.getProperty("pf4j.pluginsDir")?.let { 
+        systemProperty("pf4j.pluginsDir", it) 
+    } ?: pluginsDir?.let { 
+        systemProperty("pf4j.pluginsDir", it.absolutePath) 
+    }
+
+    // Pass all other parsek/pf4j system properties
+    System.getProperties().forEach { (key, value) ->
+        val keyStr = key.toString()
+        if (keyStr.startsWith("parsek.") || (keyStr.startsWith("pf4j.") && keyStr != "pf4j.pluginsDir")) {
+            systemProperty(keyStr, value)
+        }
+    }
 }
 
 application {
