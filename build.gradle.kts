@@ -4,7 +4,7 @@ val vertxVersion: String by project
 val gsonVersion: String by project
 val springContextVersion: String by project
 val handlebarsVersion: String by project
-val log4jVersion = "2.24.2"
+val log4jVersion = "2.25.3"
 val appMainClass = "co.statu.parsek.Main"
 val pf4jVersion: String by project
 val pluginsDir: File? by rootProject.extra
