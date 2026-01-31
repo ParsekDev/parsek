@@ -2,7 +2,6 @@ package co.statu.parsek.config.migration
 
 import co.statu.parsek.PluginManager
 import co.statu.parsek.annotation.Migration
-import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.config.ConfigMigration
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigRenderOptions
@@ -13,9 +12,7 @@ import java.io.File
 @Migration
 class ConfigMigration2To3(private val pluginManager: PluginManager, private val logger: Logger) :
     ConfigMigration(2, 3, "Split plugins section into specific folders") {
-    override fun migrate(configManager: ConfigManager) {
-        val config = configManager.getConfig()
-
+    override fun migrate(config: JsonObject) {
         val plugins = config.getJsonObject("plugins") ?: JsonObject()
 
         plugins.map.forEach { plugin ->

@@ -22,37 +22,22 @@ import java.time.format.DateTimeFormatter
 @Lazy
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
-class ConfigManager(
+open class ConfigManager(
     vertx: Vertx,
     private val logger: Logger,
     applicationContext: AnnotationConfigApplicationContext
 ) {
-    companion object {
-        fun JsonObject.putAll(jsonObject: Map<String, Any>) {
-            jsonObject.forEach {
-                this.put(it.key, it.value)
-            }
-        }
-    }
-
-    private fun getDefaultConfig(): JsonObject {
+    private val defaultConfig by lazy {
         val latestVersion = migrations.maxByOrNull { it.to }?.to ?: 1
 
-        return JsonObject(
-            mapOf(
-                "config-version" to latestVersion,
-                "router" to mapOf(
-                    "api-prefix" to "/api"
-                ),
-                "server" to mapOf(
-                    "host" to "0.0.0.0",
-                    "port" to 8088
-                )
-            )
-        )
+        ParsekConfig(latestVersion)
     }
 
-    fun saveConfig(config: JsonObject = this.config) {
+    private val configFilePath by lazy {
+        System.getProperty("parsek.configFile", "config.conf")
+    }
+
+    fun saveConfig() {
         val renderOptions = ConfigRenderOptions
             .defaults()
             .setJson(false)           // false: HOCON, true: JSON
@@ -69,13 +54,15 @@ class ConfigManager(
         configFile.writeText(parsedConfig.root().render(renderOptions))
     }
 
-    fun getConfig() = config
-
     internal suspend fun init() {
-        val defaultConfig = getDefaultConfig()
-
         if (!configFile.exists()) {
-            saveConfig(defaultConfig)
+            logger.warn("Config file not found, creating one...")
+
+            updateConfig(JsonObject(defaultConfig.toString()))
+            saveConfig()
+            listenConfigFile()
+
+            return
         }
 
         try {
@@ -105,18 +92,15 @@ class ConfigManager(
         listenConfigFile()
     }
 
-    private fun getConfigVersion(): Int = config.getInteger("config-version")
+    lateinit var config: ParsekConfig
+        private set
 
-    private val config = JsonObject()
+    private lateinit var configJsonObject: JsonObject
 
     private val migrations by lazy {
         val beans = applicationContext.getBeansWithAnnotation(Migration::class.java)
 
         beans.filter { it.value is ConfigMigration }.map { it.value as ConfigMigration }.sortedBy { it.from }
-    }
-
-    private val configFilePath by lazy {
-        System.getProperty("parsek.configFile", "config.conf")
     }
 
     private val configFile = File(configFilePath)
@@ -130,27 +114,35 @@ class ConfigManager(
 
     private val configRetriever = ConfigRetriever.create(vertx, options)
 
-    private fun migrate(configVersion: Int = getConfigVersion(), saveConfig: Boolean = true) {
+    private fun migrate(
+        configVersion: Int = configJsonObject.getInteger("config-version"),
+        saveConfig: Boolean = true
+    ) {
         migrations
             .find { configMigration -> configMigration.isMigratable(configVersion) }
             ?.let { migration ->
                 logger.info("Migration Found! Migrating config from version ${migration.from} to ${migration.to}: ${migration.versionInfo}")
 
-                config.put("config-version", migration.to)
+                configJsonObject.put("config-version", migration.to)
 
-                migration.migrate(this)
+                migration.migrate(configJsonObject)
 
                 migrate(migration.to, false)
             }
 
         if (saveConfig) {
+            updateConfig(configJsonObject)
             saveConfig()
         }
     }
 
     private fun listenConfigFile() {
+        logger.info("Started to listen config file changes.")
+
         configRetriever.listen { change ->
-            config.clear()
+            if (change.previousConfiguration.encode() != change.newConfiguration.encode()) {
+                logger.info("Config is updated, reloading...")
+            }
 
             updateConfig(change.newConfiguration)
         }
@@ -171,8 +163,7 @@ class ConfigManager(
     }
 
     private fun updateConfig(newConfig: JsonObject) {
-        newConfig.map.forEach {
-            config.put(it.key, it.value)
-        }
+        config = ParsekConfig.from(newConfig)
+        configJsonObject = newConfig.copy()
     }
 }

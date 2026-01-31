@@ -64,7 +64,7 @@ class RouterProvider private constructor(
     )
 
     init {
-        val routerConfig = configManager.getConfig().getJsonObject("router")
+        val routerConfig = configManager.config.router
 
         val routeList = mutableListOf<Route>()
         val routerEventHandlers = PluginEventManager.getParsekEventListeners<RouterEventListener>()
@@ -100,7 +100,7 @@ class RouterProvider private constructor(
                 val httpMethod = path.routeType.vertxHttpMethod
 
                 if (route is Api) {
-                    val apiPrefix = routerConfig.getString("api-prefix")
+                    val apiPrefix = routerConfig.apiPrefix
 
                     if (!url.startsWith(apiPrefix)) {
                         url = apiPrefix + url

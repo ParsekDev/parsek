@@ -166,9 +166,9 @@ class Main : CoroutineVerticle() {
     private fun startWebServer() {
         logger.info("Creating HTTP server")
 
-        val serverConfig = configManager.getConfig().getJsonObject("server")
-        val host = serverConfig.getString("host")
-        val port = serverConfig.getInteger("port")
+        val serverConfig = configManager.config.server
+        val host = serverConfig.host
+        val port = serverConfig.port
 
         vertx
             .createHttpServer()
@@ -178,7 +178,7 @@ class Main : CoroutineVerticle() {
                 logger.info("Started listening on port $port, ready to rock & roll! (${TimeUtil.getStartupTime()}s)")
             }
             .onFailure {
-                logger.error("Failed to listen on port $port, reason: " + it.toString())
+                logger.error("Failed to listen on port $port, reason: $it")
             }
     }
 }
