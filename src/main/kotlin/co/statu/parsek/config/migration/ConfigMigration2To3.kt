@@ -41,9 +41,11 @@ class ConfigMigration2To3(private val pluginManager: PluginManager, private val 
         val parsedConfig = ConfigFactory.parseString(config.toString())
 
         val pluginsFolder = pluginManager.pluginsRoot.toAbsolutePath().toString()
-        val pluginDataDir = System.getProperty("parsek.pluginDataDir", pluginsFolder)
+        val pluginDataDir = File(System.getProperty("parsek.pluginDataDir", pluginsFolder)).absolutePath
 
-        val configFile = File(pluginDataDir + File.separator + pluginId + File.separator + "config.conf")
+        val configFilePath = File(pluginDataDir, "$pluginId${File.separator}config.conf").absolutePath
+
+        val configFile = File(configFilePath)
 
         if (configFile.parentFile != null && !configFile.parentFile.exists()) {
             configFile.parentFile.mkdirs()

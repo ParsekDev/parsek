@@ -28,9 +28,9 @@ class PluginConfigManager<T : PluginConfig>(
     }
 
     private val pluginsFolder = pluginManager.pluginsRoot.toAbsolutePath().toString()
-    private val pluginDataDir = System.getProperty("parsek.pluginDataDir", pluginsFolder)
+    private val pluginDataDir = File(System.getProperty("parsek.pluginDataDir", pluginsFolder)).absolutePath
 
-    val configFilePath = pluginDataDir + File.separator + pluginId + File.separator + "config.conf"
+    val configFilePath = File(pluginDataDir, "$pluginId${File.separator}config.conf").absolutePath
 
     val configFile = File(configFilePath)
 
