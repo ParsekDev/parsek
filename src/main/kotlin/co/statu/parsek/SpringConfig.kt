@@ -3,9 +3,9 @@ package co.statu.parsek
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.route.RouterProvider
 import io.vertx.core.Vertx
-import io.vertx.json.schema.SchemaParser
-import io.vertx.json.schema.SchemaRouter
-import io.vertx.json.schema.SchemaRouterOptions
+import io.vertx.json.schema.Draft
+import io.vertx.json.schema.JsonSchemaOptions
+import io.vertx.json.schema.SchemaRepository
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -44,18 +44,20 @@ open class SpringConfig {
     @Lazy
     @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
     open fun router(
-        schemaParser: SchemaParser,
+        schemaRepository: SchemaRepository,
         configManager: ConfigManager,
         pluginManager: PluginManager
     ) =
-        RouterProvider.create(vertx, applicationContext, schemaParser, configManager, pluginManager)
+        RouterProvider.create(vertx, applicationContext, schemaRepository, configManager, pluginManager)
             .provide()
+
+
 
     @Bean
     @Lazy
     @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
-    open fun provideSchemeParser(vertx: Vertx): SchemaParser = SchemaParser.createOpenAPI3SchemaParser(
-        SchemaRouter.create(vertx, SchemaRouterOptions())
+    open fun provideSchemeRepository(): SchemaRepository = SchemaRepository.create(
+        JsonSchemaOptions().setDraft(Draft.DRAFT7).setBaseUri("https://parsek.dev/")
     )
 
     @Bean

@@ -5,7 +5,7 @@ import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.validation.ValidationHandler
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder
-import io.vertx.json.schema.SchemaParser
+import io.vertx.json.schema.SchemaRepository
 
 abstract class Route {
     open val order = 1
@@ -16,8 +16,8 @@ abstract class Route {
 
     open fun bodyHandler(): Handler<RoutingContext>? = BodyHandler.create()
 
-    open fun getValidationHandler(schemaParser: SchemaParser): ValidationHandler? =
-        ValidationHandlerBuilder.create(schemaParser).build()
+    open fun getValidationHandler(schemaRepository: SchemaRepository): ValidationHandler? =
+        ValidationHandlerBuilder.create(schemaRepository).build()
 
     open fun getFailureHandler(): Handler<RoutingContext> = Handler { request ->
         val response = request.response()

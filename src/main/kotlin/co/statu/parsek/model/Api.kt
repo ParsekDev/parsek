@@ -6,7 +6,7 @@ import io.vertx.core.Handler
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.validation.*
 import io.vertx.ext.web.validation.ValidationHandler.REQUEST_CONTEXT_KEY
-import io.vertx.json.schema.SchemaParser
+import io.vertx.json.schema.SchemaRepository
 import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -96,7 +96,7 @@ abstract class Api : Route() {
 
     fun getParameters(context: RoutingContext): RequestParameters = context.get(REQUEST_CONTEXT_KEY)
 
-    abstract override fun getValidationHandler(schemaParser: SchemaParser): ValidationHandler?
+    abstract override fun getValidationHandler(schemaRepository: SchemaRepository): ValidationHandler?
 
     abstract suspend fun handle(context: RoutingContext): Result?
 

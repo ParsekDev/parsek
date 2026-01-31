@@ -16,6 +16,8 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Component
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Lazy
 @Component
@@ -76,20 +78,25 @@ class ConfigManager(
             saveConfig(defaultConfig)
         }
 
-        val configValues: Map<String, Any>
-
         try {
-            configValues = configRetriever.config.coAwait().map
-        } catch (e: Exception) {
-            logger.error("Error occurred while loading config file! Error: $e")
-            logger.info("Using default config!")
+            val configValues = configRetriever.config.coAwait()
 
-            config.putAll(defaultConfig.map)
+            updateConfig(configValues)
+
+            logger.info("Loaded config file.")
+        } catch (e: Exception) {
+            logger.error("Config file is invalid! Error: $e")
+
+            backupConfigFile()
+
+            logger.info("Saving & using default config!")
+
+            updateConfig(JsonObject(defaultConfig.toString()))
+            saveConfig()
+            listenConfigFile()
 
             return
         }
-
-        config.putAll(configValues)
 
         logger.info("Checking available config migrations")
 
@@ -147,6 +154,20 @@ class ConfigManager(
 
             updateConfig(change.newConfiguration)
         }
+    }
+
+    private fun backupConfigFile() {
+        logger.warn("Backing up config file...")
+
+        val now = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss") // Exp: 2025-01-28_15-45-30
+        val formattedDate = now.format(formatter)
+
+        val filePath = configFile.parentFile.absolutePath + File.separator + "config-backup-$formattedDate.conf"
+
+        configFile.copyTo(File(filePath))
+
+        logger.info("Config file backed up to: $filePath")
     }
 
     private fun updateConfig(newConfig: JsonObject) {

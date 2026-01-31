@@ -14,14 +14,14 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.LocalSessionStore
-import io.vertx.json.schema.SchemaParser
+import io.vertx.json.schema.SchemaRepository
 import org.pf4j.PluginWrapper
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 class RouterProvider private constructor(
     vertx: Vertx,
     applicationContext: AnnotationConfigApplicationContext,
-    schemaParser: SchemaParser,
+    schemaRepository: SchemaRepository,
     configManager: ConfigManager,
     pluginManager: PluginManager
 ) {
@@ -29,11 +29,11 @@ class RouterProvider private constructor(
         fun create(
             vertx: Vertx,
             applicationContext: AnnotationConfigApplicationContext,
-            schemaParser: SchemaParser,
+            schemaRepository: SchemaRepository,
             configManager: ConfigManager,
             pluginManager: PluginManager
         ) =
-            RouterProvider(vertx, applicationContext, schemaParser, configManager, pluginManager)
+            RouterProvider(vertx, applicationContext, schemaRepository, configManager, pluginManager)
 
         private var isInitialized = false
 
@@ -88,7 +88,7 @@ class RouterProvider private constructor(
         router.route()
             .handler(SessionHandler.create(LocalSessionStore.create(vertx)))
             .handler(
-                CorsHandler.create(".*.")
+                CorsHandler.create()
                     .allowCredentials(true)
                     .allowedHeaders(allowedHeaders)
                     .allowedMethods(allowedMethods)
@@ -122,7 +122,7 @@ class RouterProvider private constructor(
                     routedRoute.handler(bodyHandler)
                 }
 
-                val validationHandler = route.getValidationHandler(schemaParser)
+                val validationHandler = route.getValidationHandler(schemaRepository)
 
                 if (validationHandler != null) {
                     routedRoute
