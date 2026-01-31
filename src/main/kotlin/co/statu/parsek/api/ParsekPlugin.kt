@@ -6,11 +6,16 @@ import co.statu.parsek.PluginManager
 import co.statu.parsek.ReleaseStage
 import co.statu.parsek.api.event.PluginEventListener
 import io.vertx.core.Vertx
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.pf4j.Plugin
+import org.pf4j.PluginState
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.support.BeanDefinitionRegistry
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import java.io.File
 
 abstract class ParsekPlugin : Plugin() {
     lateinit var pluginId: String
@@ -23,6 +28,8 @@ abstract class ParsekPlugin : Plugin() {
         internal set
     lateinit var releaseStage: ReleaseStage
         internal set
+    lateinit var pluginState: PluginState
+
     lateinit var pluginBeanContext: AnnotationConfigApplicationContext
         internal set
 
@@ -31,6 +38,21 @@ abstract class ParsekPlugin : Plugin() {
 
     lateinit var applicationContext: AnnotationConfigApplicationContext
         internal set
+
+    private val pluginManager by lazy {
+        applicationContext.getBean(PluginManager::class.java)
+    }
+    private val pluginsFolder: String by lazy { pluginManager.pluginsRoot.toAbsolutePath().toString() }
+    private val pluginsDataDir: String by lazy { System.getProperty("parsek.pluginDataDir", pluginsFolder) }
+
+    val pluginDataFolder: File by lazy {
+        val folder = pluginsDataDir + File.separator + pluginId
+        val file = File(folder)
+        if (!file.exists()) {
+            file.mkdirs()
+        }
+        file
+    }
 
     val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -68,10 +90,20 @@ abstract class ParsekPlugin : Plugin() {
 
     @Deprecated("Use onStart method.")
     override fun start() {
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                onStart()
+            }
+        }
     }
 
     @Deprecated("Use onStop method.")
     override fun stop() {
+        runBlocking {
+            withContext(Dispatchers.IO) {
+                onStop()
+            }
+        }
     }
 
     internal fun load() {
@@ -96,6 +128,9 @@ abstract class ParsekPlugin : Plugin() {
         this.pluginBeanContext = pluginBeanContext
 
         pluginEventManager.initializePlugin(this, pluginBeanContext)
+        runBlocking {
+            PluginManager.lifecycleListeners.forEach { it.onPluginLoad(this@ParsekPlugin) }
+        }
     }
 
     internal fun unload() {
@@ -110,11 +145,15 @@ abstract class ParsekPlugin : Plugin() {
         }
 
         pluginEventManager.unregisterPlugin(this)
+        runBlocking {
+            PluginManager.lifecycleListeners.forEach { it.onPluginUnload(this@ParsekPlugin) }
+        }
     }
 
     open suspend fun onCreate() {}
     open suspend fun onEnable() {}
-    open suspend fun onDisable() {}
     open suspend fun onStart() {}
     open suspend fun onStop() {}
+    open suspend fun onDisable() {}
+    open suspend fun onUninstall() {}
 }

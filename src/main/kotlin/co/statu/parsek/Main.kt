@@ -1,17 +1,17 @@
 package co.statu.parsek
 
 import co.statu.parsek.annotation.Boot
-import co.statu.parsek.api.event.CoreEventListener
 import co.statu.parsek.config.ConfigManager
+import co.statu.parsek.route.RouterProvider
 import co.statu.parsek.util.TimeUtil
 import com.jcabi.manifests.Manifests
 import io.vertx.core.Vertx
 import io.vertx.core.VertxOptions
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.CoroutineVerticle
+import io.vertx.kotlin.coroutines.coAwait
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import kotlin.system.exitProcess
 
 @Boot
 class Main : CoroutineVerticle() {
@@ -97,12 +97,24 @@ class Main : CoroutineVerticle() {
         startWebServer()
     }
 
-    private suspend fun init() {
-        initDependencyInjection()
+    private suspend fun executeBlocking(unit: () -> Unit) {
+        vertx.executeBlocking {
+            unit.invoke()
+        }.onFailure {
+            it.printStackTrace()
+        }.coAwait()
+    }
 
-        initPlugins()
+    private suspend fun init() {
+        executeBlocking {
+            initDependencyInjection()
+        }
 
         initConfigManager()
+
+        executeBlocking {
+            initPlugins()
+        }
 
         initRoutes()
     }
@@ -135,31 +147,17 @@ class Main : CoroutineVerticle() {
         configManager = applicationContext.getBean(ConfigManager::class.java)
 
         configManager.init()
-
-        try {
-            val parsekEventHandlers = PluginEventManager.getParsekEventListeners<CoreEventListener>()
-
-            parsekEventHandlers.forEach { eventHandler ->
-                eventHandler.onConfigManagerReady(configManager)
-            }
-
-            parsekEventHandlers.forEach { eventHandler ->
-                eventHandler.onConfigManagerDone(configManager)
-            }
-        } catch (e: Exception) {
-            println(e.stackTraceToString())
-
-            exitProcess(1)
-        }
     }
 
     private fun initRoutes() {
         logger.info("Initializing routes")
 
         try {
+            val routerProvider = applicationContext.getBean(RouterProvider::class.java)
+            routerProvider.initialize()
             router = applicationContext.getBean(Router::class.java)
         } catch (e: Exception) {
-            logger.error(e.toString())
+            e.printStackTrace()
         }
     }
 

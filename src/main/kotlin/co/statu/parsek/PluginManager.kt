@@ -1,6 +1,7 @@
 package co.statu.parsek
 
 import co.statu.parsek.api.ParsekPlugin
+import co.statu.parsek.api.event.PluginLifecycleListener
 import kotlinx.coroutines.runBlocking
 import org.pf4j.*
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
@@ -21,6 +22,12 @@ class PluginManager(importPaths: List<Path>) : DefaultPluginManager(importPaths)
 
             pluginGlobalBeanContext
         }
+
+        internal val lifecycleListeners = mutableSetOf<PluginLifecycleListener>()
+    }
+
+    fun addLifecycleListener(listener: PluginLifecycleListener) {
+        lifecycleListeners.add(listener)
     }
 
     override fun createPluginRepository(): PluginRepository {
@@ -64,7 +71,6 @@ class PluginManager(importPaths: List<Path>) : DefaultPluginManager(importPaths)
         return pluginWrapper
     }
 
-
     override fun enablePlugin(pluginId: String): Boolean {
         val result = super.enablePlugin(pluginId)
 
@@ -72,22 +78,36 @@ class PluginManager(importPaths: List<Path>) : DefaultPluginManager(importPaths)
 
         if (result) {
             plugin?.let {
-                runBlocking {
-                    it.load()
-                    it.onEnable()
-                    it.onStart()
+                try {
+                    runBlocking {
+                        it.load()
+
+                        lifecycleListeners.forEach { listener ->
+                            listener.onPluginEnable(it)
+                        }
+
+                        it.onEnable()
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
 
         return result
     }
+    override fun startPlugin(pluginId: String?): PluginState? {
+        return super.startPlugin(pluginId)
+    }
 
     override fun disablePlugin(pluginId: String): Boolean {
         val plugin = getPlugin(pluginId).plugin as ParsekPlugin
 
         runBlocking {
-            plugin.onStop()
+            lifecycleListeners.forEach { listener ->
+                listener.onPluginDisable(plugin)
+            }
+
             plugin.onDisable()
             plugin.unload()
         }

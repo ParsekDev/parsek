@@ -39,19 +39,23 @@ open class SpringConfig {
     @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
     open fun logger() = logger
 
-
     @Bean
-    @Lazy
     @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
-    open fun router(
+    open fun routerProvider(
         schemaRepository: SchemaRepository,
         configManager: ConfigManager,
-        pluginManager: PluginManager
+        pluginManager: PluginManager,
     ) =
-        RouterProvider.create(vertx, applicationContext, schemaRepository, configManager, pluginManager)
-            .provide()
+        RouterProvider.create(
+            vertx,
+            applicationContext,
+            schemaRepository,
+            configManager,
+            pluginManager
+        )
 
-
+    @Bean
+    open fun router(routerProvider: RouterProvider) = routerProvider.provide()
 
     @Bean
     @Lazy

@@ -21,6 +21,7 @@ class PluginFactory : DefaultPluginFactory() {
             val plugin = constructor.newInstance() as ParsekPlugin
 
             plugin.pluginId = pluginWrapper.pluginId
+            plugin.pluginState = pluginWrapper.pluginState
             plugin.vertx = vertx
             plugin.pluginEventManager = pluginEventManager
             plugin.environmentType = Main.ENVIRONMENT
@@ -31,7 +32,6 @@ class PluginFactory : DefaultPluginFactory() {
             runBlocking {
                 plugin.load()
                 plugin.onCreate()
-                plugin.onStart()
             }
 
             return plugin

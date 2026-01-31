@@ -4,27 +4,25 @@ import co.statu.parsek.PluginEventManager
 import co.statu.parsek.PluginManager
 import co.statu.parsek.annotation.Endpoint
 import co.statu.parsek.api.ParsekPlugin
+import co.statu.parsek.api.event.PluginLifecycleListener
 import co.statu.parsek.api.event.RouterEventListener
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.model.Api
 import co.statu.parsek.model.Route
 import io.vertx.core.Vertx
-import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.LocalSessionStore
 import io.vertx.json.schema.SchemaRepository
-import org.pf4j.PluginWrapper
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 class RouterProvider private constructor(
-    vertx: Vertx,
-    applicationContext: AnnotationConfigApplicationContext,
-    schemaRepository: SchemaRepository,
-    configManager: ConfigManager,
-    pluginManager: PluginManager
-) {
+    private val vertx: Vertx,
+    private val applicationContext: AnnotationConfigApplicationContext,
+    private val schemaRepository: SchemaRepository,
+    private val configManager: ConfigManager,
+    private val pluginManager: PluginManager
+): PluginLifecycleListener {
     companion object {
         fun create(
             vertx: Vertx,
@@ -44,57 +42,86 @@ class RouterProvider private constructor(
         Router.router(vertx)
     }
 
-    private val allowedHeaders = setOf(
-        "x-requested-with",
-        "Access-Control-Allow-Origin",
-        "origin",
-        "Content-Type",
-        "accept",
-        "X-PINGARUNER",
-        "x-csrf-token"
-    )
-
-    private val allowedMethods = setOf<HttpMethod>(
-        HttpMethod.GET,
-        HttpMethod.POST,
-        HttpMethod.OPTIONS,
-        HttpMethod.DELETE,
-        HttpMethod.PATCH,
-        HttpMethod.PUT
-    )
+    private val pendingPlugins = mutableListOf<ParsekPlugin>()
+    private val pluginRoutes = mutableMapOf<ParsekPlugin, List<io.vertx.ext.web.Route>>()
 
     init {
-        val routerConfig = configManager.config.router
+        pluginManager.addLifecycleListener(this)
+    }
 
-        val routeList = mutableListOf<Route>()
+    fun initialize() {
+        if (isInitialized) return
+
         val routerEventHandlers = PluginEventManager.getParsekEventListeners<RouterEventListener>()
 
         routerEventHandlers.forEach { eventHandler ->
             eventHandler.onRouterCreate(router)
         }
 
-        routeList.addAll(applicationContext.getBeansWithAnnotation(Endpoint::class.java).map { it.value as Route })
-        routeList.addAll(pluginManager.plugins.map {
-            ((it as PluginWrapper).plugin as ParsekPlugin).pluginBeanContext.getBeansWithAnnotation(
-                Endpoint::class.java
-            )
-        }.flatMap { it.values }.map { it as Route })
-
+        val hostRoutes =
+            applicationContext.getBeansWithAnnotation(Endpoint::class.java).values.map { it as Route }.toMutableList()
 
         routerEventHandlers.forEach { eventHandler ->
-            eventHandler.onInitRouteList(routeList)
+            eventHandler.onInitRouteList(hostRoutes)
+        }
+
+        applyRoutes(hostRoutes)
+
+        pendingPlugins.forEach { plugin ->
+            processPluginLoad(plugin)
+        }
+        pendingPlugins.clear()
+
+        pluginManager.getActivePlugins().forEach { plugin ->
+            if (!pluginRoutes.containsKey(plugin)) {
+                processPluginLoad(plugin)
+            }
         }
 
         router.route()
             .handler(SessionHandler.create(LocalSessionStore.create(vertx)))
-            .handler(
-                CorsHandler.create()
-                    .allowCredentials(true)
-                    .allowedHeaders(allowedHeaders)
-                    .allowedMethods(allowedMethods)
-            )
 
-        routeList.forEach { route ->
+        isInitialized = true
+    }
+
+    override suspend fun onPluginLoad(plugin: ParsekPlugin) {
+        if (!isInitialized) {
+            pendingPlugins.add(plugin)
+            return
+        }
+
+        processPluginLoad(plugin)
+    }
+
+    private fun processPluginLoad(plugin: ParsekPlugin) {
+        if (pluginRoutes.containsKey(plugin)) return
+
+        val routes =
+            plugin.pluginBeanContext.getBeansWithAnnotation(Endpoint::class.java).values.map { it as Route }.toMutableList()
+        val routerEventHandlers = PluginEventManager.getParsekEventListeners<RouterEventListener>()
+
+        routerEventHandlers.forEach { eventHandler ->
+            eventHandler.onInitRouteList(routes)
+        }
+
+        pluginRoutes[plugin] = applyRoutes(routes)
+    }
+
+    override suspend fun onPluginUnload(plugin: ParsekPlugin) {
+        if (!isInitialized) {
+            pendingPlugins.remove(plugin)
+            return
+        }
+
+        pluginRoutes[plugin]?.forEach { it.disable(); it.remove() }
+        pluginRoutes.remove(plugin)
+    }
+
+    private fun applyRoutes(routes: List<Route>): List<io.vertx.ext.web.Route> {
+        val routerConfig = configManager.config.router
+        val vertxRoutes = mutableListOf<io.vertx.ext.web.Route>()
+
+        routes.forEach { route ->
             route.paths.forEach { path ->
                 var url = path.url
                 val httpMethod = path.routeType.vertxHttpMethod
@@ -122,6 +149,12 @@ class RouterProvider private constructor(
                     routedRoute.handler(bodyHandler)
                 }
 
+                val corsHandler = route.corsHandler()
+
+                if (corsHandler != null) {
+                    routedRoute.handler(corsHandler)
+                }
+
                 val validationHandler = route.getValidationHandler(schemaRepository)
 
                 if (validationHandler != null) {
@@ -132,10 +165,12 @@ class RouterProvider private constructor(
                 routedRoute
                     .handler(route.getHandler())
                     .failureHandler(route.getFailureHandler())
+
+                vertxRoutes.add(routedRoute)
             }
         }
 
-        isInitialized = true
+        return vertxRoutes
     }
 
     fun provide(): Router = router
