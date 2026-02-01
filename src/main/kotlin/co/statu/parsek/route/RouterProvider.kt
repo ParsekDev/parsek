@@ -10,6 +10,7 @@ import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.model.Api
 import co.statu.parsek.model.Route
 import io.vertx.core.Vertx
+import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.SessionHandler
 import io.vertx.ext.web.sstore.LocalSessionStore
@@ -149,7 +150,13 @@ class RouterProvider private constructor(
                     routedRoute.handler(bodyHandler)
                 }
 
-                val corsHandler = route.corsHandler()
+                val corsHandler = route.corsHandler(
+                    hosts = route.allowedHosts.takeIf { it.isNotEmpty() } ?: routerConfig.allowedHosts,
+                    schemes = route.allowedSchemes.takeIf { it.isNotEmpty() } ?: routerConfig.allowedSchemes,
+                    headers = route.allowedHeaders.takeIf { it.isNotEmpty() } ?: routerConfig.allowedHeaders,
+                    methods = (route.allowedMethods.takeIf { it.isNotEmpty() }?.map { it.name() }?.toSet()
+                        ?: routerConfig.allowedMethods).map { HttpMethod.valueOf(it) }.toSet()
+                )
 
                 if (corsHandler != null) {
                     routedRoute.handler(corsHandler)

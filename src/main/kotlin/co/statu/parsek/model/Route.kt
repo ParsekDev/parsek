@@ -16,37 +16,27 @@ abstract class Route {
 
     abstract fun getHandler(): Handler<RoutingContext>
 
-    open val allowedSchemes = setOf("http", "https")
-    open val allowedHosts = setOf("localhost", "127.0.0.1", "0.0.0.0")
+    open val allowedSchemes: Set<String> = emptySet()
+    open val allowedHosts: Set<String> = emptySet()
 
-    open val allowedHeaders = setOf(
-        "x-requested-with",
-        "Access-Control-Allow-Origin",
-        "origin",
-        "Content-Type",
-        "accept",
-        "X-PINGARUNER",
-        "x-csrf-token"
-    )
+    open val allowedHeaders: Set<String> = emptySet()
 
-    open val allowedMethods = setOf<HttpMethod>(
-        HttpMethod.GET,
-        HttpMethod.POST,
-        HttpMethod.OPTIONS,
-        HttpMethod.DELETE,
-        HttpMethod.PATCH,
-        HttpMethod.PUT
-    )
+    open val allowedMethods: Set<HttpMethod> = emptySet()
 
-    open fun corsHandler(): Handler<RoutingContext>? = Handler { ctx ->
+    open fun corsHandler(
+        hosts: Set<String> = allowedHosts,
+        schemes: Set<String> = allowedSchemes,
+        headers: Set<String> = allowedHeaders,
+        methods: Set<HttpMethod> = allowedMethods
+    ): Handler<RoutingContext>? = Handler { ctx ->
         val origin = ctx.request().getHeader("Origin")
         if (origin != null) {
             try {
                 val uri = URI(origin)
                 // Check the scheme and host
-                if (uri.scheme in allowedSchemes && uri.host in allowedHosts) {
+                if (uri.scheme in schemes && uri.host in hosts) {
                     // If the origin is allowed, add it to the response header
-                    ctx.response().putHeader("Access-Control-Allow-Origin", "*")
+                    ctx.response().putHeader("Access-Control-Allow-Origin", origin)
                 }
             } catch (_: Exception) {
                 // If the URI cannot be parsed, do not add any header.
@@ -54,11 +44,11 @@ abstract class Route {
         }
 
         // Add the allowed methods to the header:
-        val methodsAsString = allowedMethods.joinToString(",") { it.name() }
+        val methodsAsString = methods.joinToString(",") { it.name() }
         ctx.response().putHeader("Access-Control-Allow-Methods", methodsAsString)
 
         // Add the allowed headers to the header:
-        val headersAsString = allowedHeaders.joinToString(",")
+        val headersAsString = headers.joinToString(",")
         ctx.response().putHeader("Access-Control-Allow-Headers", headersAsString)
 
         // If it's a Preflight (OPTIONS) request, end the response immediately:
@@ -68,6 +58,8 @@ abstract class Route {
             ctx.next()
         }
     }
+
+    open fun corsHandler(): Handler<RoutingContext>? = corsHandler()
 
     open fun bodyHandler(): Handler<RoutingContext>? = BodyHandler.create()
 

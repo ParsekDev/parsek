@@ -11,7 +11,21 @@ data class ParsekConfig(
 ) {
     companion object {
         data class RouterConfig(
-            @SerializedName("api-prefix") var apiPrefix: String = "/api"
+            @SerializedName("api-prefix") var apiPrefix: String = "/api",
+            @SerializedName("allowed-hosts") var allowedHosts: Set<String> = setOf("localhost", "127.0.0.1", "0.0.0.0"),
+            @SerializedName("allowed-schemes") var allowedSchemes: Set<String> = setOf("http", "https"),
+            @SerializedName("allowed-headers") var allowedHeaders: Set<String> = setOf(
+                "x-requested-with",
+                "Access-Control-Allow-Origin",
+                "origin",
+                "Content-Type",
+                "accept",
+                "X-PINGARUNER",
+                "x-csrf-token"
+            ),
+            @SerializedName("allowed-methods") var allowedMethods: Set<String> = setOf(
+                "GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"
+            )
         )
 
         data class ServerConfig(
