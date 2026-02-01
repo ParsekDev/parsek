@@ -114,4 +114,20 @@ class PluginManager(importPaths: List<Path>) : DefaultPluginManager(importPaths)
 
         return super.disablePlugin(pluginId)
     }
+
+    fun getSortedPlugins(): List<PluginWrapper> {
+        val resolver = DependencyResolver(versionManager)
+        val result = resolver.resolve(plugins.values.map { it.descriptor })
+        return result.sortedPlugins.map { plugins[it]!! }
+    }
+
+    fun initializePlugins() {
+        runBlocking {
+            getSortedPlugins().forEach { wrapper ->
+                if (wrapper.pluginState == PluginState.STARTED) {
+                    (wrapper.plugin as? ParsekPlugin)?.onStart()
+                }
+            }
+        }
+    }
 }

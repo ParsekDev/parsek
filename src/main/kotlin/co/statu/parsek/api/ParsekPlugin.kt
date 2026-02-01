@@ -6,9 +6,7 @@ import co.statu.parsek.PluginManager
 import co.statu.parsek.ReleaseStage
 import co.statu.parsek.api.event.PluginEventListener
 import io.vertx.core.Vertx
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.pf4j.Plugin
 import org.pf4j.PluginState
 import org.slf4j.Logger
@@ -88,17 +86,12 @@ abstract class ParsekPlugin : Plugin() {
         pluginEventManager.unRegister(this, eventListener)
     }
 
-    @Deprecated("Use onStart method.")
+    @Deprecated("Use onStart method.", level = DeprecationLevel.HIDDEN)
     override fun start() {
     }
 
-    @Deprecated("Use onStop method.")
+    @Deprecated("Use onStop method.", level = DeprecationLevel.HIDDEN)
     override fun stop() {
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                onStop()
-            }
-        }
     }
 
     internal fun load() {
