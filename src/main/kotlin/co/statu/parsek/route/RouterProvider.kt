@@ -135,7 +135,18 @@ class RouterProvider private constructor(
                     }
                 }
 
+                val corsHandler = route.corsHandler(
+                    hosts = route.allowedHosts.takeIf { it.isNotEmpty() } ?: routerConfig.allowedHosts,
+                    schemes = route.allowedSchemes.takeIf { it.isNotEmpty() } ?: routerConfig.allowedSchemes,
+                    headers = route.allowedHeaders.takeIf { it.isNotEmpty() } ?: routerConfig.allowedHeaders,
+                    methods = (route.allowedMethods.takeIf { it.isNotEmpty() }?.map { it.name() }?.toSet()
+                        ?: routerConfig.allowedMethods).map { HttpMethod.valueOf(it) }.toSet()
+                )
+
                 val routedRoute = if (httpMethod != null) {
+                    if (corsHandler != null) {
+                        router.route(HttpMethod.OPTIONS, url).handler(corsHandler)
+                    }
                     router.route(httpMethod, url)
                 } else {
                     router.route(url)
@@ -149,14 +160,6 @@ class RouterProvider private constructor(
                 if (bodyHandler != null) {
                     routedRoute.handler(bodyHandler)
                 }
-
-                val corsHandler = route.corsHandler(
-                    hosts = route.allowedHosts.takeIf { it.isNotEmpty() } ?: routerConfig.allowedHosts,
-                    schemes = route.allowedSchemes.takeIf { it.isNotEmpty() } ?: routerConfig.allowedSchemes,
-                    headers = route.allowedHeaders.takeIf { it.isNotEmpty() } ?: routerConfig.allowedHeaders,
-                    methods = (route.allowedMethods.takeIf { it.isNotEmpty() }?.map { it.name() }?.toSet()
-                        ?: routerConfig.allowedMethods).map { HttpMethod.valueOf(it) }.toSet()
-                )
 
                 if (corsHandler != null) {
                     routedRoute.handler(corsHandler)
