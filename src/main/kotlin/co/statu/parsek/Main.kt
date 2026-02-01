@@ -10,6 +10,7 @@ import io.vertx.core.VertxOptions
 import io.vertx.ext.web.Router
 import io.vertx.kotlin.coroutines.CoroutineVerticle
 import io.vertx.kotlin.coroutines.coAwait
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
@@ -130,7 +131,17 @@ class Main : CoroutineVerticle() {
 
         logger.info("Enabling plugins")
 
+        pluginManager.getPluginWrappers().forEach {
+            pluginManager.enablePlugin(it.pluginId)
+        }
+
         pluginManager.startPlugins()
+
+        runBlocking {
+            pluginManager.getActivePlugins().forEach {
+                it.onStart()
+            }
+        }
     }
 
     private fun initDependencyInjection() {

@@ -90,11 +90,6 @@ abstract class ParsekPlugin : Plugin() {
 
     @Deprecated("Use onStart method.")
     override fun start() {
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                onStart()
-            }
-        }
     }
 
     @Deprecated("Use onStop method.")
