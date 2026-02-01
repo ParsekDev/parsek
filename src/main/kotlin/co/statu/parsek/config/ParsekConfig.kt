@@ -21,7 +21,8 @@ data class ParsekConfig(
                 "Content-Type",
                 "accept",
                 "X-PINGARUNER",
-                "x-csrf-token"
+                "x-csrf-token",
+                "Authorization"
             ),
             @SerializedName("allowed-methods") var allowedMethods: Set<String> = setOf(
                 "GET", "POST", "OPTIONS", "DELETE", "PATCH", "PUT"

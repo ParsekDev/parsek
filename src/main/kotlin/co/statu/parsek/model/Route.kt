@@ -51,6 +51,9 @@ abstract class Route {
         val headersAsString = headers.joinToString(",")
         ctx.response().putHeader("Access-Control-Allow-Headers", headersAsString)
 
+        // Set Access-Control-Allow-Credentials to true
+        ctx.response().putHeader("Access-Control-Allow-Credentials", "true")
+
         // If it's a Preflight (OPTIONS) request, end the response immediately:
         if (ctx.request().method() == HttpMethod.OPTIONS) {
             ctx.response().end()
