@@ -9,6 +9,7 @@ import co.statu.parsek.api.event.RouterEventListener
 import co.statu.parsek.config.ConfigManager
 import co.statu.parsek.model.Api
 import co.statu.parsek.model.Route
+import co.statu.parsek.util.RateLimitManager
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.Router
@@ -81,6 +82,15 @@ class RouterProvider private constructor(
 
         router.route()
             .handler(SessionHandler.create(LocalSessionStore.create(vertx)))
+
+        // Global, per-IP API rate limiting. Added as a global handler so it runs before the
+        // endpoint route handlers (which use Route.order = 1), letting it reject abusive clients
+        // with HTTP 429 before any endpoint logic executes.
+        val rateLimitManager = applicationContext.getBean(RateLimitManager::class.java)
+        rateLimitManager.init(configManager.config)
+
+        router.route()
+            .handler(rateLimitManager.createHandler(configManager.config.router.apiPrefix))
 
         isInitialized = true
     }
