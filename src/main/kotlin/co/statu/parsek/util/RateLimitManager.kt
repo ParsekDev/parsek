@@ -49,6 +49,14 @@ class RateLimitManager {
     private var enabled = true
 
     /**
+     * Header trusted to carry the real client IP when the app sits behind a reverse proxy. Only
+     * this single header is honored (no spoofable fallback chain); when blank or absent the socket
+     * peer address is used instead. Set it to the header your edge proxy *overwrites* (e.g.
+     * "CF-Connecting-IP" for Cloudflare) and make sure the proxy strips client-supplied copies.
+     */
+    private var clientIpHeader: String = "CF-Connecting-IP"
+
+    /**
      * Initializes rate limiting from the typed config. Falls back to a sane DEFAULT tier when the
      * config does not declare one.
      */
@@ -56,6 +64,7 @@ class RateLimitManager {
         val rateLimitConfig = config.rateLimit
 
         enabled = rateLimitConfig.enabled
+        clientIpHeader = rateLimitConfig.clientIpHeader
 
         if (!enabled) {
             logger.info("Rate limiting is disabled via config")
@@ -113,16 +122,13 @@ class RateLimitManager {
     fun getClientIp(context: RoutingContext): String {
         val request = context.request()
 
-        request.getHeader("CF-Connecting-IP")?.takeIf { it.isNotBlank() }?.let { return it.trim() }
-        request.getHeader("X-Forwarded-For")?.substringBefore(",")?.trim()?.takeIf { it.isNotBlank() }
-            ?.let { return it }
-        request.getHeader("X-Real-IP")?.takeIf { it.isNotBlank() }?.let { return it.trim() }
+        // Trust only the single configured proxy header; never the spoofable XFF/X-Real-IP chain.
+        if (clientIpHeader.isNotBlank()) {
+            request.getHeader(clientIpHeader)?.substringBefore(",")?.trim()?.takeIf { it.isNotBlank() }
+                ?.let { return it }
+        }
 
         return request.remoteAddress()?.host() ?: "unknown"
-    }
-
-    private fun isLocalhost(ip: String): Boolean {
-        return ip == "127.0.0.1" || ip == "::1" || ip == "0:0:0:0:0:0:0:1" || ip == "0.0.0.0" || ip == "localhost"
     }
 
     fun isAllowed(clientIp: String, tierName: String): Boolean {
@@ -166,12 +172,6 @@ class RateLimitManager {
             }
 
             val clientIp = getClientIp(context)
-
-            // Skip rate limiting for localhost requests
-            if (isLocalhost(clientIp)) {
-                context.next()
-                return@Handler
-            }
 
             val tierName = getTierForPath(path)
             val tierConfig = tiers[tierName]

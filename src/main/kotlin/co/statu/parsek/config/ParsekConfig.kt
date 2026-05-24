@@ -43,6 +43,9 @@ data class ParsekConfig(
          */
         data class RateLimitConfig(
             var enabled: Boolean = true,
+            // Header trusted for the real client IP behind a proxy (e.g. "CF-Connecting-IP").
+            // Blank => use the socket peer address only. Never trusts the spoofable XFF chain.
+            @SerializedName("client-ip-header") var clientIpHeader: String = "CF-Connecting-IP",
             var tiers: Map<String, TierConfig> = mapOf("DEFAULT" to TierConfig())
         )
 
