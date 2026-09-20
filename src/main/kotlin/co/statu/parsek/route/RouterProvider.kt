@@ -83,13 +83,16 @@ class RouterProvider private constructor(
         router.route()
             .handler(SessionHandler.create(LocalSessionStore.create(vertx)))
 
-        // Global, per-IP API rate limiting. Added as a global handler so it runs before the
-        // endpoint route handlers (which use Route.order = 1), letting it reject abusive clients
-        // with HTTP 429 before any endpoint logic executes.
+        // Global, per-IP API rate limiting. Vert.x walks routes by `order`, lowest first, and a
+        // `router.route()` registered without an explicit order gets its registration index. This
+        // route is registered after every endpoint (order = 1 via Route.order), so without the
+        // explicit order below the matching endpoint would answer first and the limiter would only
+        // ever see requests no endpoint matched. Int.MIN_VALUE keeps it ahead of any endpoint order.
         val rateLimitManager = applicationContext.getBean(RateLimitManager::class.java)
         rateLimitManager.init(configManager.config)
 
         router.route()
+            .order(Int.MIN_VALUE)
             .handler(rateLimitManager.createHandler(configManager.config.router.apiPrefix))
 
         isInitialized = true
