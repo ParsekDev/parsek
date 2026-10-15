@@ -63,7 +63,7 @@ abstract class Api : Route() {
                 logger.error("Error on endpoint URL: {} {}", context.request().method(), context.request().path())
                 sendResult(InternalServerError(), context)
 
-                throw failure
+                throw failure ?: NullPointerException("Routing context failed without a cause")
             }
 
             sendResult(failure, context)
@@ -94,7 +94,8 @@ abstract class Api : Route() {
         context.fail(exception)
     }
 
-    fun getParameters(context: RoutingContext): RequestParameters = context.get(REQUEST_CONTEXT_KEY)
+    fun getParameters(context: RoutingContext): RequestParameters =
+        context.get<RequestParameters>(REQUEST_CONTEXT_KEY)!!
 
     abstract override fun getValidationHandler(schemaRepository: SchemaRepository): ValidationHandler?
 

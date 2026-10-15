@@ -1,21 +1,23 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-val vertxVersion: String by project
-val gsonVersion: String by project
-val springContextVersion: String by project
-val handlebarsVersion: String by project
-val log4jVersion = "2.25.3"
+val vertxVersion = project.property("vertxVersion") as String
+val gsonVersion = project.property("gsonVersion") as String
+val springContextVersion = project.property("springContextVersion") as String
+val handlebarsVersion = project.property("handlebarsVersion") as String
+val log4jVersion = "2.26.1"
 val appMainClass = "co.statu.parsek.Main"
-val pf4jVersion: String by project
-val pluginsDir: File? by rootProject.extra
+val pf4jVersion = project.property("pf4jVersion") as String
+val nettyVersion = project.property("nettyVersion") as String
+val jacksonVersion = project.property("jacksonVersion") as String
+val pluginsDir = rootProject.extra.properties["pluginsDir"] as File?
 
 val defaultVersion = "0.0.0-local-build"
 
 plugins {
-    kotlin("jvm") version "2.3.0"
-    kotlin("kapt") version "2.3.0"
-    id("com.gradleup.shadow") version "9.3.1"
-    id("org.jreleaser") version "1.14.0"
+    kotlin("jvm") version "2.4.21"
+    kotlin("kapt") version "2.4.21"
+    id("com.gradleup.shadow") version "9.6.1"
+    id("org.jreleaser") version "1.26.0"
     `maven-publish`
     signing
     application
@@ -25,10 +27,8 @@ group = "dev.parsek"
 version = project.findProperty("version") ?: defaultVersion
 
 val buildType = project.findProperty("buildType") as String? ?: "alpha"
-val timeStamp: String by project
 // Custom directory for distribution JARs (separate from build/libs which is used for publishing)
-val distDir by extra { file("${rootProject.layout.buildDirectory.get()}/dist") }
-val defaultJarEnabled: String? by project
+val distDir = file("${rootProject.layout.buildDirectory.get()}/dist").also { extra["distDir"] = it }
 
 repositories {
     mavenCentral()
@@ -40,8 +40,14 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.11.3")
+    // Keep Netty and Jackson on patched lines regardless of what Vert.x pulls in
+    implementation(platform("io.netty:netty-bom:$nettyVersion"))
+    implementation(platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+
+    testImplementation(platform("org.junit:junit-bom:5.14.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("io.vertx:vertx-unit:$vertxVersion")
 
     implementation("io.vertx:vertx-web:$vertxVersion")
@@ -53,25 +59,25 @@ dependencies {
     implementation("io.vertx:vertx-web-validation:$vertxVersion")
     implementation("io.vertx:vertx-json-schema:$vertxVersion")
 
-    implementation(group = "org.apache.logging.log4j", name = "log4j-api", version = log4jVersion)
-    implementation(group = "org.apache.logging.log4j", name = "log4j-core", version = log4jVersion)
-    implementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
+    implementation("org.apache.logging.log4j:log4j-api:${log4jVersion}")
+    implementation("org.apache.logging.log4j:log4j-core:${log4jVersion}")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:${log4jVersion}")
 
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
-    implementation(group = "commons-codec", name = "commons-codec", version = "1.17.1")
+    implementation("commons-codec:commons-codec:1.23.0")
 
     // https://mvnrepository.com/artifact/org.springframework/spring-context
     implementation("org.springframework:spring-context:$springContextVersion")
 
     implementation("org.pf4j:pf4j:${pf4jVersion}")
 
-    implementation("org.apache.commons:commons-lang3:3.17.0")
+    implementation("org.apache.commons:commons-lang3:3.21.0")
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-text
-    implementation("org.apache.commons:commons-text:1.12.0")
+    implementation("org.apache.commons:commons-text:1.15.0")
 
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind")
 
     // https://mvnrepository.com/artifact/com.google.code.gson/gson
     implementation("com.google.code.gson:gson:$gsonVersion")
@@ -83,7 +89,7 @@ dependencies {
     implementation("com.github.jknack:handlebars:$handlebarsVersion")
 
     // https://mvnrepository.com/artifact/commons-validator/commons-validator
-    implementation("commons-validator:commons-validator:1.9.0")
+    implementation("commons-validator:commons-validator:1.11.0")
 
     // https://mvnrepository.com/artifact/com.jcabi/jcabi-manifests
     implementation("com.jcabi:jcabi-manifests:2.1.0")
